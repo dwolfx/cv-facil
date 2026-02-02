@@ -1,0 +1,5 @@
+{
+  "name": "ResumeBuilder AI",
+  "description": "A professional resume generator designed for ATS compatibility and recruiter readability, powered by Gemini AI to optimize descriptions.",
+  "requestFramePermissions": []
+}
