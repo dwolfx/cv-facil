@@ -1,0 +1,57 @@
+:root {
+  /* Colors - Orange Theme */
+  --primary: #EA580C;
+  /* Orange 600 */
+  --primary-hover: #C2410C;
+  /* Orange 700 */
+  --secondary: #8B5CF6;
+  /* Violet 500 - Good contrast with orange */
+
+  --gradient-main: linear-gradient(135deg, #F97316 0%, #EA580C 50%, #DB2777 100%);
+  /* Orange to Pink */
+  --gradient-text: linear-gradient(to right, #EA580C, #DB2777);
+
+  --bg-body: #FAFAF9;
+  /* Stone 50 */
+  --bg-card: #FFFFFF;
+  --bg-glass: rgba(255, 255, 255, 0.7);
+
+  --text-main: #1C1917;
+  /* Stone 900 */
+  --text-muted: #57534E;
+  /* Stone 500 */
+  --text-light: #F5F5F4;
+
+  --border-light: #E7E5E4;
+  /* Stone 200 */
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(234 88 12 / 0.1), 0 2px 4px -2px rgb(234 88 12 / 0.1);
+  /* Orange tinted shadow */
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-glow: 0 0 20px rgb(249 115 22 / 0.3);
+
+  /* Typography */
+  --font-sans: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
+  /* Switching to Outfit for a more modern look if available */
+
+  /* Spacing */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.75rem;
+  /* Slightly rounder */
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+}
+
+[data-theme='dark'] {
+  --bg-body: #0C0A09;
+  /* Stone 950 */
+  --bg-card: #1C1917;
+  --bg-glass: rgba(28, 25, 23, 0.7);
+
+  --text-main: #FAFAF9;
+  --text-muted: #A8A29E;
+
+  --border-light: #292524;
+}

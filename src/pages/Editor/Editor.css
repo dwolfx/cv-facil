@@ -1,0 +1,244 @@
+/* Editor Layout */
+.editor-layout {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: #f3f4f6;
+    overflow: hidden;
+}
+
+.editor-header {
+    height: 60px;
+    padding: 0 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border-light);
+    background: white;
+    z-index: 20;
+}
+
+.header-left,
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.cv-title-input {
+    border: none;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-main);
+    background: transparent;
+    width: 300px;
+}
+
+.cv-title-input:focus {
+    outline: none;
+    border-bottom: 2px solid var(--primary);
+}
+
+.editor-container {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+/* Form Area (Left) */
+.editor-form-area {
+    width: 45%;
+    background: white;
+    border-right: 1px solid var(--border-light);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.form-tabs {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border-light);
+    overflow-x: auto;
+    white-space: nowrap;
+}
+
+.tab-btn {
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    color: var(--text-muted);
+    transition: all 0.2s;
+    font-size: 0.9rem;
+}
+
+.tab-btn:hover {
+    background: var(--bg-body);
+    color: var(--primary);
+}
+
+.tab-btn.active {
+    background: var(--primary-light, #FFF7ED);
+    /* Orange 50 */
+    color: var(--primary);
+    font-weight: 600;
+}
+
+.form-content {
+    padding: 2rem;
+    flex: 1;
+}
+
+/* Form Elements */
+.form-section h2 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.form-helper {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-bottom: 2rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-row {
+    display: flex;
+    gap: 1rem;
+}
+
+.form-row .form-group {
+    flex: 1;
+}
+
+label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: var(--text-main);
+}
+
+.input-field,
+.textarea-field {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    transition: border-color 0.2s, box-shadow 0.2s;
+    background: var(--bg-body);
+}
+
+.input-field:focus,
+.textarea-field:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.1);
+    outline: none;
+}
+
+/* Preview Area (Right) */
+.editor-preview-area {
+    flex: 1;
+    background: #525252;
+    padding: 2rem;
+    overflow-y: auto;
+    display: flex;
+    justify-content: center;
+}
+
+.preview-paper {
+    background: white;
+    width: 210mm;
+    /* A4 width */
+    min-height: 297mm;
+    /* A4 height */
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+    padding: 2.5rem;
+    /* ~1 inch margin */
+    transform-origin: top center;
+}
+
+/* CV Template Styles (Minimal) */
+.cv-name {
+    font-size: 2.25rem;
+    text-transform: uppercase;
+    color: #111;
+    margin-bottom: 0.5rem;
+    line-height: 1.1;
+}
+
+.cv-contact-info {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 2rem;
+}
+
+.cv-section {
+    margin-bottom: 1.5rem;
+}
+
+.cv-section-title {
+    font-size: 1rem;
+    text-transform: uppercase;
+    border-bottom: 2px solid #333;
+    padding-bottom: 0.25rem;
+    margin-bottom: 1rem;
+    color: #333;
+    letter-spacing: 0.05em;
+}
+
+.cv-text {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: #333;
+    text-align: justify;
+}
+
+.cv-text-muted {
+    color: #999;
+    font-style: italic;
+}
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+}
+
+@media (max-width: 1024px) {
+    .editor-container {
+        flex-direction: column;
+    }
+
+    .editor-form-area {
+        width: 100%;
+        height: 50%;
+        border-right: none;
+        border-bottom: 1px solid var(--border-light);
+    }
+
+    .editor-preview-area {
+        height: 50%;
+    }
+
+    .btn-sm .desktop-only {
+        display: none;
+    }
+}
