@@ -1,9 +1,8 @@
 /* 
   Editor Specific Styles 
-  Most styles are now handled by Tailwind classes or variables.css
 */
 
-/* Custom Scrollbar override if Tailwind plugin not present */
+/* Custom Scrollbar override */
 .no-scrollbar::-webkit-scrollbar {
     display: none;
 }
@@ -28,4 +27,65 @@
 
 .animate-fade-in-down {
     animation: fadeInDown 0.3s ease-out;
+}
+
+/* Modern Input Styles */
+.input-label {
+    display: block;
+    font-size: 0.65rem;
+    /* ~10px or 11px */
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #64748b;
+    /* slate-500 */
+    margin-bottom: 0.25rem;
+    letter-spacing: 0.05em;
+}
+
+.input-field {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    background-color: #f8fafc;
+    /* slate-50 */
+    border: 1px solid #e2e8f0;
+    /* slate-200 */
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    /* text-sm */
+    color: #334155;
+    /* slate-700 */
+    outline: none;
+    transition: all 0.2s;
+}
+
+.input-field-modern {
+    width: 100%;
+    padding: 0.6rem 0.75rem;
+    background-color: #f8fafc;
+    /* slate-50 */
+    border: 1px solid #e2e8f0;
+    /* slate-200 */
+    border-radius: 0.5rem;
+    font-size: 0.85rem;
+    color: #1e293b;
+    /* slate-800 */
+    transition: all 0.2s ease-in-out;
+}
+
+.input-field-modern:focus {
+    background-color: #ffffff;
+    border-color: #93c5fd;
+    /* blue-300 */
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    /* blue-500 with opacity */
+}
+
+.input-field-modern::placeholder {
+    color: #94a3b8;
+    /* slate-400 */
+}
+
+.form-group {
+    margin-bottom: 0;
+    /* Spacing handled by parent space-y */
 }
