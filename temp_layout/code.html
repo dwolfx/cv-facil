@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Resume Builder Editor</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13a4ec",
+                        "slate-blue": "#475569",
+                        "background-light": "#f8fafc",
+                        "background-dark": "#0f172a",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.375rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        @layer base {
+            .material-symbols-outlined {
+                font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+                display: inline-block;
+                vertical-align: middle;
+            }
+        }
+        .resume-preview-container {
+            aspect-ratio: 1 / 1.414;}
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        details > summary {
+            list-style: none;
+        }
+        details > summary::-webkit-details-marker {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-[#f1f5f9] dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen flex flex-col">
+<header class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-6 h-16 sticky top-0 z-50">
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-3">
+<div class="text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-3xl">description</span>
+</div>
+<div class="flex flex-col justify-center">
+<h1 class="text-slate-900 dark:text-white text-base font-bold leading-none mb-1">ResumeBuilder AI</h1>
+<div class="flex items-center gap-1.5">
+<span class="size-2 rounded-full bg-emerald-500"></span>
+<p class="text-[10px] text-slate-500 font-medium uppercase tracking-wider">Auto-saved</p>
+</div>
+</div>
+</div>
+<div class="h-8 w-px bg-slate-200 dark:bg-slate-800 mx-2"></div>
+<nav class="hidden lg:flex items-center gap-6">
+<a class="text-slate-600 dark:text-slate-400 text-sm font-semibold hover:text-primary transition-colors flex items-center h-full" href="#">Dashboard</a>
+<a class="text-slate-600 dark:text-slate-400 text-sm font-semibold hover:text-primary transition-colors flex items-center h-full" href="#">Templates</a>
+<div class="relative group">
+<button class="flex items-center gap-2 text-slate-600 dark:text-slate-400 text-sm font-semibold hover:text-primary transition-colors py-2">
+<img alt="English" class="rounded-sm" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB17-zAO-7Wqtamw4d930h76jRRxSWQyJyJ11rgGOISUPJOFNyqwwqjolJg2sZx5RtEqoJ6hENNY4eRTI5kKMqVufBPlf_mKq8Yfz2JtqshF6KDB4o4Cx5W4k46TfVYLEV30YVLFVQXuX1DE4324c6s05AEU86V00JTjDU2pmXOSEhM-B9RTC8mPenjIU_r6AzM0SmNtshv9QC3B1w61kKUByiRSB_htIuMkFUrWdHdqAIHbgSUzHcOVqt7ngbX-UXBQ2_uoP7vSQQ" srcset="https://flagcdn.com/w40/gb.png 2x" width="20"/>
+<span>EN</span>
+<span class="material-symbols-outlined text-sm">expand_more</span>
+</button>
+<div class="absolute top-full left-0 mt-1 w-32 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 py-1">
+<a class="flex items-center gap-3 px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-700 text-sm font-medium" href="#">
+<img alt="UK" class="rounded-sm" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCRgRP4nT2u-KpZft9ptL5L7fnqoTdonVrMjJdY1ZqsEiTxSmj_Vcjk1_xZ6SsgOCeOrZ6y7hKfquky6-KqFUNA7ivIy9z45g10_fM6jyWbqFKiqm6d-itKkCFg6ELro4b73Ihl8uidYgNpsIlJPY3WwEfULIrowXTrBOLGHT845aKnmUHCrCGywOg5KJ7fNzthLZwpFEEiLmYBG7xhjLkWFPNPPeM_9PyLZaB2XcC5BZyg_9N2y8U-wQVQEJo1_vXzEwhYNf4aC4g" width="20"/> English
+                        </a>
+<a class="flex items-center gap-3 px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-700 text-sm font-medium" href="#">
+<img alt="Brazil" class="rounded-sm" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD1anZfeqYe0u86rokq8uB19msYJJ53RvAF_S27Q9RUGnbyRrSy8NaBs1CepJIuq5aEO8ekmBki61tuAjc3ykPWHj8lv3_JEfpDjZEi7Kl12Ls3rfw96lyDwPexnPinKPlEgrE8UyL8sVsxva8aYV8ZhSrEOYifaSA2XEf5W6kP4k4zBmr8Q1PdK9san0-WvogSc8Q0m5XA6T7umhQXpves7SaNqzpRtfDAs9KXBKjgLnIw8Z1wQ4bJyOAwcEVdjij49-WAg5TgX-s" width="20"/> Português
+                        </a>
+<a class="flex items-center gap-3 px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-700 text-sm font-medium" href="#">
+<img alt="Spain" class="rounded-sm" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD9Q1VhRWiZsVKw1xvNQ3dd9NLTjVXRvlCdzYL10z7TuciUEjT8ojXm6SzUBaW8ftUKOOqL1J_fGM2gTXkSxGXliUDUbHwtiSGBFgAEm3a56dBrOAl5R0zEFOiBm45UnNBpnvltzBeaGpy1oZS2-f6Ke0E2X0O4DXpr8zneiBaensL330WElZgUSG2trLWrzdftZ0E3qa-0YEzJKc9FEZm6qxADlhXvYcbmZqNjK31mk_Ehtz2IUc762aiqvfQDowijC-EZrt9NzHc" width="20"/> Español
+                        </a>
+</div>
+</div>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-3">
+<button class="flex h-10 items-center justify-center rounded-lg px-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-sm font-bold transition-all hover:bg-slate-50 hover:border-slate-300">
+<span class="material-symbols-outlined mr-2 text-xl">share</span>
+<span>Share</span>
+</button>
+<button class="flex h-10 items-center justify-center rounded-lg px-5 bg-primary text-white text-sm font-bold transition-all hover:bg-primary/90 shadow-sm shadow-primary/20">
+<span class="material-symbols-outlined mr-2 text-xl">download</span>
+<span>Export PDF</span>
+</button>
+</div>
+<div class="h-8 w-px bg-slate-200 dark:bg-slate-800 mx-1"></div>
+<button class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-9 border-2 border-slate-100 dark:border-slate-700 hover:border-primary transition-all" data-alt="User profile" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuA8z4bXEnYlrpEf6Oj9zcZFVnkrjxGG3jTiINuwxHpHPJ4e7DIWuNHvTVXoUN0vksud-432V2-NqPl00iN0A4aNhUW61QJRgOs8Tw6cQ6Tgd_jY49d3G_rtC3cm0W8KUI3vbPrRNlKknwR8UretS4gnIhjZRdeVY59zeUIKT1R3Mx7cWa8Cr8qtypxVeQQ8DnLFWuw9BfBp1DWHOgy-4FhBJUDVCsNldCBCD0jiGfjMCzqIQRDybkOC9cHcftU7FH7doyxy-HRS3Fk");'></button>
+</div>
+</header>
+<main class="flex flex-1 overflow-hidden">
+<aside class="w-[400px] bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col h-full overflow-y-auto no-scrollbar">
+<div class="p-6">
+<div class="flex items-center justify-between mb-6">
+<h2 class="text-lg font-bold text-slate-900 dark:text-white">Resume Content</h2>
+<button class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-400 transition-colors">
+<span class="material-symbols-outlined text-xl">settings</span>
+</button>
+</div>
+<div class="mb-8 p-5 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800">
+<div class="flex justify-between items-center mb-3">
+<p class="text-sm font-bold text-slate-700 dark:text-slate-300">Content Strength</p>
+<span class="text-xs font-black text-primary bg-primary/10 px-2 py-0.5 rounded">72%</span>
+</div>
+<div class="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full transition-all duration-500" style="width: 72%;"></div>
+</div>
+<div class="mt-3 flex items-start gap-2">
+<span class="material-symbols-outlined text-primary text-base">info</span>
+<p class="text-[11px] leading-tight text-slate-500 dark:text-slate-400">Add specific metrics to your experience to increase your score by 15%.</p>
+</div>
+</div>
+<div class="space-y-3">
+<details class="group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm" open="">
+<summary class="flex cursor-pointer items-center justify-between p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all">
+<div class="flex items-center gap-3">
+<div class="bg-primary/10 text-primary p-1.5 rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-lg">person</span>
+</div>
+<span class="font-bold text-sm text-slate-700 dark:text-slate-200">Personal Data</span>
+</div>
+<span class="material-symbols-outlined text-slate-400 group-open:rotate-180 transition-transform">expand_more</span>
+</summary>
+<div class="px-4 pb-5 pt-1 space-y-4">
+<div class="grid grid-cols-2 gap-4">
+<label class="block">
+<span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Full Name</span>
+<input class="mt-1 block w-full rounded-lg border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary py-2.5" type="text" value="Johnathon Doe"/>
+</label>
+<label class="block">
+<span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Job Title</span>
+<input class="mt-1 block w-full rounded-lg border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary py-2.5" type="text" value="Senior Product Designer"/>
+</label>
+</div>
+<label class="block">
+<span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Email</span>
+<input class="mt-1 block w-full rounded-lg border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary py-2.5" type="email" value="hello@jdoe.design"/>
+</label>
+<label class="block">
+<span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Professional Summary</span>
+<textarea class="mt-1 block w-full rounded-lg border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary resize-none py-2.5" rows="4">Creative designer with 8+ years of experience in SaaS and consumer products...</textarea>
+</label>
+</div>
+</details>
+<details class="group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
+<summary class="flex cursor-pointer items-center justify-between p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all">
+<div class="flex items-center gap-3">
+<div class="bg-primary/10 text-primary p-1.5 rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-lg">work</span>
+</div>
+<span class="font-bold text-sm text-slate-700 dark:text-slate-200">Work Experience</span>
+</div>
+<span class="material-symbols-outlined text-slate-400 group-open:rotate-180 transition-transform">expand_more</span>
+</summary>
+<div class="px-4 pb-5 pt-1 space-y-4">
+<div class="p-3 bg-slate-50 dark:bg-slate-800/80 rounded-lg border border-slate-200 dark:border-slate-700 relative group/item">
+<div class="flex justify-between items-start mb-1">
+<span class="font-bold text-sm">TechCorp Inc.</span>
+<button class="text-slate-300 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-lg">delete</span>
+</button>
+</div>
+<p class="text-xs text-slate-500">Senior Designer • Jan 2020 - Present</p>
+</div>
+<button class="w-full py-3 flex items-center justify-center gap-2 border-2 border-dashed border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 rounded-lg text-sm font-bold hover:border-primary hover:text-primary transition-all group/btn">
+<span class="material-symbols-outlined text-xl group-hover/btn:scale-110 transition-transform">add_circle</span>
+                                Add Experience
+                            </button>
+</div>
+</details>
+<details class="group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
+<summary class="flex cursor-pointer items-center justify-between p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all">
+<div class="flex items-center gap-3">
+<div class="bg-primary/10 text-primary p-1.5 rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-lg">school</span>
+</div>
+<span class="font-bold text-sm text-slate-700 dark:text-slate-200">Education / Courses</span>
+</div>
+<span class="material-symbols-outlined text-slate-400 group-open:rotate-180 transition-transform">expand_more</span>
+</summary>
+<div class="px-4 pb-5 pt-1">
+<button class="w-full py-3 flex items-center justify-center gap-2 border-2 border-dashed border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 rounded-lg text-sm font-bold hover:border-primary hover:text-primary transition-all">
+<span class="material-symbols-outlined text-xl">add_circle</span>
+                                Add Education
+                            </button>
+</div>
+</details>
+<details class="group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
+<summary class="flex cursor-pointer items-center justify-between p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all">
+<div class="flex items-center gap-3">
+<div class="bg-primary/10 text-primary p-1.5 rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-lg">translate</span>
+</div>
+<span class="font-bold text-sm text-slate-700 dark:text-slate-200">Languages</span>
+</div>
+<span class="material-symbols-outlined text-slate-400 group-open:rotate-180 transition-transform">expand_more</span>
+</summary>
+<div class="px-4 pb-5 pt-1">
+<div class="flex gap-2 flex-wrap mb-4">
+<span class="flex items-center gap-1.5 px-2.5 py-1 bg-primary/10 text-primary text-[10px] font-bold rounded-full border border-primary/20">
+                                    ENGLISH (NATIVE) <span class="material-symbols-outlined text-xs cursor-pointer">close</span>
+</span>
+<span class="flex items-center gap-1.5 px-2.5 py-1 bg-primary/10 text-primary text-[10px] font-bold rounded-full border border-primary/20">
+                                    GERMAN (B2) <span class="material-symbols-outlined text-xs cursor-pointer">close</span>
+</span>
+</div>
+<button class="w-full py-3 flex items-center justify-center gap-2 border-2 border-dashed border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 rounded-lg text-sm font-bold hover:border-primary hover:text-primary transition-all">
+<span class="material-symbols-outlined text-xl">add_circle</span>
+                                Add Language
+                            </button>
+</div>
+</details>
+</div>
+<div class="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800">
+<button class="w-full py-4 bg-slate-900 dark:bg-slate-100 dark:text-slate-900 text-white rounded-xl flex items-center justify-center gap-3 transition-all hover:bg-slate-800 shadow-lg shadow-slate-200 dark:shadow-none">
+<span class="material-symbols-outlined">add_box</span>
+<span class="font-bold text-sm">Add New Custom Section</span>
+</button>
+</div>
+</div>
+</aside>
+<section class="flex-1 flex flex-col bg-[#f8fafc] dark:bg-slate-950 h-full overflow-hidden relative">
+<div class="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-8 flex items-center justify-between">
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-400 text-lg">auto_awesome_motion</span>
+<span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Layout</span>
+</div>
+<div class="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-lg gap-1">
+<button class="px-5 py-1.5 text-xs font-bold rounded-md bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white">Modern</button>
+<button class="px-5 py-1.5 text-xs font-semibold rounded-md text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all">Professional</button>
+<button class="px-5 py-1.5 text-xs font-semibold rounded-md text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all">Creative</button>
+<button class="px-5 py-1.5 text-xs font-semibold rounded-md text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all">Minimalist</button>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-3 text-slate-400">
+<button class="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors"><span class="material-symbols-outlined text-xl">zoom_out</span></button>
+<span class="text-xs font-bold text-slate-600 dark:text-slate-300 w-10 text-center">100%</span>
+<button class="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors"><span class="material-symbols-outlined text-xl">zoom_in</span></button>
+</div>
+<div class="h-6 w-px bg-slate-200 dark:bg-slate-800"></div>
+<button class="flex items-center gap-2 text-primary font-bold text-sm hover:bg-primary/5 px-3 py-2 rounded-lg transition-all">
+<span class="material-symbols-outlined">fullscreen</span>
+                        Preview
+                    </button>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto p-12 flex justify-center items-start scroll-smooth no-scrollbar">
+<div class="resume-preview-container w-full max-w-[820px] bg-white shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-sm p-[8%] flex flex-col text-slate-800 relative">
+<div class="border-b-4 border-primary pb-8 mb-8">
+<h1 class="text-4xl font-extrabold tracking-tight mb-2 uppercase">JOHNATHON DOE</h1>
+<p class="text-primary font-bold text-lg mb-5 tracking-widest">SENIOR PRODUCT DESIGNER</p>
+<div class="flex flex-wrap gap-x-6 gap-y-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+<span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px] text-primary">mail</span> hello@jdoe.design</span>
+<span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px] text-primary">phone</span> +1 (555) 000-1234</span>
+<span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px] text-primary">location_on</span> New York, NY</span>
+<span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px] text-primary">link</span> bento.me/jdoe</span>
+</div>
+</div>
+<div class="mb-10">
+<h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-4 border-b border-slate-100 pb-1">Professional Summary</h3>
+<p class="text-sm leading-relaxed text-slate-600 font-medium">
+                            Creative designer with 8+ years of experience in SaaS and consumer products. Specialized in design systems, user-centric accessibility, and converting complex workflows into intuitive digital experiences. Proven track record of leading design teams and delivering high-impact products from concept to launch.
+                        </p>
+</div>
+<div class="mb-10">
+<h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-5 border-b border-slate-100 pb-1">Professional Experience</h3>
+<div class="mb-8 relative">
+<div class="flex justify-between items-baseline mb-1">
+<h4 class="text-[15px] font-bold text-slate-900">TechCorp Inc.</h4>
+<span class="text-[11px] font-bold text-slate-400 bg-slate-50 px-2 py-0.5 rounded">JAN 2020 – PRESENT</span>
+</div>
+<p class="text-xs font-bold text-primary mb-3 italic">Senior Product Designer</p>
+<ul class="space-y-2">
+<li class="text-xs text-slate-600 flex gap-3"><span class="text-primary font-bold">•</span> <span>Redesigned the core platform interface, resulting in a 40% increase in daily active users within 6 months.</span></li>
+<li class="text-xs text-slate-600 flex gap-3"><span class="text-primary font-bold">•</span> <span>Developed a unified design system using Figma, reducing development handoff time by 30%.</span></li>
+<li class="text-xs text-slate-600 flex gap-3"><span class="text-primary font-bold">•</span> <span>Mentored junior designers and led cross-functional workshops to align on product vision.</span></li>
+</ul>
+</div>
+<div class="mb-8">
+<div class="flex justify-between items-baseline mb-1">
+<h4 class="text-[15px] font-bold text-slate-900">CreativePulse Studio</h4>
+<span class="text-[11px] font-bold text-slate-400 bg-slate-50 px-2 py-0.5 rounded">JUN 2017 – DEC 2019</span>
+</div>
+<p class="text-xs font-bold text-primary mb-3 italic">UI/UX Designer</p>
+<ul class="space-y-2">
+<li class="text-xs text-slate-600 flex gap-3"><span class="text-primary font-bold">•</span> <span>Delivered over 15 high-fidelity prototypes for Fortune 500 clients in the Fintech space.</span></li>
+<li class="text-xs text-slate-600 flex gap-3"><span class="text-primary font-bold">•</span> <span>Conducted user research sessions that identified critical pain points, leading to a major UX overhaul.</span></li>
+</ul>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-12 mt-auto">
+<div>
+<h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-4 border-b border-slate-100 pb-1">Expertise</h3>
+<div class="flex flex-wrap gap-2">
+<span class="text-[10px] px-2.5 py-1.5 bg-slate-900 text-white rounded-sm font-bold uppercase tracking-wider">UI Design</span>
+<span class="text-[10px] px-2.5 py-1.5 bg-slate-900 text-white rounded-sm font-bold uppercase tracking-wider">UX Research</span>
+<span class="text-[10px] px-2.5 py-1.5 bg-slate-900 text-white rounded-sm font-bold uppercase tracking-wider">Figma</span>
+<span class="text-[10px] px-2.5 py-1.5 bg-slate-900 text-white rounded-sm font-bold uppercase tracking-wider">Design Systems</span>
+<span class="text-[10px] px-2.5 py-1.5 bg-slate-900 text-white rounded-sm font-bold uppercase tracking-wider">Strategy</span>
+</div>
+</div>
+<div>
+<h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-4 border-b border-slate-100 pb-1">Education</h3>
+<div>
+<h4 class="text-sm font-bold text-slate-900">School of Visual Arts</h4>
+<p class="text-[11px] text-slate-500 font-semibold mt-1">BFA in Interaction Design • 2017</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="absolute bottom-8 right-8">
+<div class="bg-slate-900 dark:bg-slate-100 dark:text-slate-900 text-white px-5 py-2.5 rounded-full flex items-center gap-3 shadow-2xl border border-white/10">
+<span class="material-symbols-outlined text-emerald-400 text-lg">check_circle</span>
+<span class="text-[11px] font-bold uppercase tracking-widest">Live Sync Enabled</span>
+</div>
+</div>
+</section>
+</main>
+
+</body></html>
