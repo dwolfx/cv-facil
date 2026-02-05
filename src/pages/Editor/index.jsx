@@ -4,7 +4,7 @@ import {
     Download, UploadCloud, ChevronDown, PlusCircle, Trash2,
     Mail, Phone, MapPin, Briefcase, GraduationCap,
     Wrench, User, Star, Minus, Plus, FileText, Globe,
-    Layout, Settings
+    Layout, Settings, Bold, List
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import './Editor.css'
@@ -83,6 +83,8 @@ const initialResumeState = {
     ]
 }
 
+import Sidebar from '../../components/Sidebar'
+
 const Editor = () => {
     const [resumeData, setResumeData] = useState(initialResumeState)
     const [activeSection, setActiveSection] = useState('personal')
@@ -107,7 +109,6 @@ const Editor = () => {
     }
 
     const formatDateInput = (value) => {
-        // MM/YYYY Mask
         const digits = value.replace(/\D/g, '')
         const truncated = digits.slice(0, 6)
         if (truncated.length > 2) {
@@ -119,29 +120,42 @@ const Editor = () => {
     const formatPreviewDate = (dateString) => {
         if (!dateString) return ''
         const parts = dateString.split('/')
-        if (parts.length < 2) return dateString // partial
-
+        if (parts.length < 2) return dateString
         const month = parseInt(parts[0], 10)
         const year = parts[1]
-
         if (isNaN(month) || month < 1 || month > 12) return dateString
-
         const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
         return `${months[month - 1]} ${year}`
     }
 
-    // Helper to render date range
     const renderDateRange = (start, end, isCurrent) => {
         const s = formatPreviewDate(start)
         const e = isCurrent ? 'Presente' : formatPreviewDate(end)
-
         if (!s && !e) return ''
         if (s && !e) return s
         if (!s && e) return e
         return `${s} - ${e}`
     }
 
-    // Calculate Resume Strength
+    // Rich Text Rendering Helper
+    const renderRichText = (text) => {
+        if (!text) return null
+        return text.split('\n').map((line, i) => {
+            // Simple robust parser for <b> tags
+            const parts = line.split(/(<b>.*?<\/b>)/g)
+            return (
+                <p key={i} className="mb-1 min-h-[1em]">
+                    {parts.map((part, j) => {
+                        if (part.startsWith('<b>') && part.endsWith('</b>')) {
+                            return <span key={j} className="font-bold">{part.replace(/<\/?b>/g, '')}</span>
+                        }
+                        return part
+                    })}
+                </p>
+            )
+        })
+    }
+
     const calculateStrength = () => {
         let score = 0;
         if (resumeData.personalInfo.fullName) score += 10;
@@ -178,33 +192,67 @@ const Editor = () => {
         setResumeData(prev => ({ ...prev, personalInfo: { ...prev.personalInfo, locations: (prev.personalInfo.locations || []).filter((_, i) => i !== index) } }))
     }
 
-    // UPDATED Array Handler for Dates
     const handleArrayChange = (section, index, field, value) => {
         setResumeData(prev => {
             const newArray = [...prev[section]]
             let finalValue = value
-
-            // Apply Date Mask
             if (field === 'startDate' || field === 'endDate') {
                 finalValue = formatDateInput(value)
             }
-
             newArray[index] = { ...newArray[index], [field]: finalValue }
-
-            // Logic: if setting isCurrent to true
             if (field === 'isCurrent' && value === true) {
-                newArray[index].endDate = '' // Clear end date
-
-                // IF section is experience, uncheck others (Exclusive "Current Work")
+                newArray[index].endDate = ''
                 if (section === 'experience') {
                     newArray.forEach((item, i) => {
                         if (i !== index) item.isCurrent = false
                     })
                 }
             }
-
             return { ...prev, [section]: newArray }
         })
+    }
+
+    // New Rich Text Handler using standard DOM API
+    const handleFormat = (elementId, type, section, index, field) => {
+        const el = document.getElementById(elementId)
+        if (!el) return
+
+        const start = el.selectionStart
+        const end = el.selectionEnd
+        const text = el.value
+        const selectedText = text.substring(start, end)
+        let newText = text
+        let newCursorPos = end
+
+        if (type === 'bold') {
+            const before = text.substring(0, start)
+            const after = text.substring(end)
+            newText = `${before}<b>${selectedText}</b>${after}`
+            newCursorPos = end + 7 // length of <b> and </b>
+        } else if (type === 'list') {
+            // Add bullet at start of line or at cursor
+            // Simple version: insert bullet at cursor
+            const before = text.substring(0, start)
+            const after = text.substring(end)
+            newText = `${before}• ${after}` // Only adds bullet, user types text
+            newCursorPos = start + 2
+        }
+
+        // Trigger Update
+        if (index !== undefined) {
+            handleArrayChange(section, index, field, newText)
+        } else {
+            handleChange(section, field, newText)
+        }
+
+        // Restore focus/cursor (requires timeout due to react render)
+        setTimeout(() => {
+            const updatedEl = document.getElementById(elementId)
+            if (updatedEl) {
+                updatedEl.focus()
+                updatedEl.setSelectionRange(newCursorPos, newCursorPos)
+            }
+        }, 0)
     }
 
     const addItem = (section, template) => {
@@ -227,38 +275,10 @@ const Editor = () => {
 
     return (
         <div className="bg-[#f8f9fa] dark:bg-slate-900 font-sans text-slate-900 dark:text-slate-100 h-screen flex flex-row overflow-hidden">
+            {/* Shared Sidebar */}
+            <Sidebar />
 
-            {/* Left Navigation Rail */}
-            <nav className="w-16 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col items-center py-6 gap-6 z-20 shrink-0">
-                <Link to="/" className="p-2 bg-blue-600 rounded-lg text-white mb-2 shadow-lg hover:bg-blue-700 transition-colors">
-                    <FileText size={20} />
-                </Link>
-                <div className="flex flex-col gap-4 w-full">
-                    <button className="h-10 w-full flex items-center justify-center text-slate-400 hover:text-blue-600 transition-colors relative group">
-                        <Layout size={20} />
-                        <span className="absolute left-14 bg-slate-800 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none">Templates</span>
-                    </button>
-                    <button className="h-10 w-full flex items-center justify-center text-blue-600 bg-blue-50 border-r-2 border-blue-600">
-                        <FileText size={20} />
-                    </button>
-                    <button className="h-10 w-full flex items-center justify-center text-slate-400 hover:text-blue-600 transition-colors">
-                        <UploadCloud size={20} />
-                    </button>
-                </div>
-                <div className="mt-auto flex flex-col gap-4">
-                    <button className="h-10 w-full flex items-center justify-center text-slate-400 hover:text-blue-600 transition-colors">
-                        <Settings size={20} />
-                    </button>
-                    <div className="size-8 rounded-full bg-slate-200 overflow-hidden mx-auto border border-slate-300">
-                        <img src="https://ui-avatars.com/api/?name=Ricardo+Silva&background=random" alt="User" />
-                    </div>
-                </div>
-            </nav>
-
-            {/* Main Content */}
             <div className="flex-1 flex flex-col h-full overflow-hidden">
-
-                {/* Header */}
                 <header className="flex items-center justify-between bg-white dark:bg-slate-900 px-6 h-16 border-b border-slate-200 dark:border-slate-800 shrink-0 z-10 relative">
                     <div className="flex flex-col">
                         <div className="flex items-center gap-2">
@@ -286,14 +306,9 @@ const Editor = () => {
                     </div>
                 </header>
 
-                {/* Workspace */}
                 <main className="flex flex-1 overflow-hidden relative">
-
-                    {/* Sidebar */}
                     <aside className="w-[380px] bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col h-full z-10 shrink-0">
                         <div className="flex-1 overflow-y-auto no-scrollbar p-0">
-
-                            {/* Section Header */}
                             <div className="p-6 pb-4">
                                 <h2 className="text-base font-bold text-slate-800 dark:text-white flex items-center gap-2">
                                     <Layout size={18} className="text-blue-600" />
@@ -314,7 +329,6 @@ const Editor = () => {
                                 </button>
                             </div>
 
-                            {/* Forms */}
                             <div className="px-6 pb-6 space-y-3">
                                 {/* Personal Info */}
                                 <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
@@ -362,7 +376,6 @@ const Editor = () => {
                                                         </button>
                                                     </div>
                                                 </div>
-                                                {/* Socials */}
                                                 <div className="pt-2 space-y-3 border-t border-slate-50 mt-2">
                                                     <div className="flex flex-col gap-3">
                                                         <label className="flex items-center gap-2 cursor-pointer group">
@@ -399,29 +412,29 @@ const Editor = () => {
                                         </div>
                                     )}
                                 </div>
-
-                                {/* Sobre Mim */}
                                 <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
-                                    <button onClick={() => toggleSection('summary')} className="flex w-full items-center justify-between p-4 hover:bg-slate-50 transition-colors text-left">
+                                    <button onClick={() => toggleSection('summary')} className="flex w-full items-center justify-between p-4 hover:bg-slate-50 transition-colors text-left bg-blue-50/30">
                                         <div className="flex items-center gap-3">
-                                            <div className="bg-slate-100 p-1.5 rounded-md text-slate-600"><FileText size={16} /></div>
-                                            <span className="font-bold text-sm text-slate-700">Sobre mim</span>
+                                            <div className="bg-blue-100 p-1.5 rounded-md text-blue-600"><FileText size={16} /></div>
+                                            <span className="font-bold text-sm text-slate-800">Sobre mim</span>
                                         </div>
                                         <ChevronDown size={16} className={`text-slate-400 transition-transform ${activeSection === 'summary' ? 'rotate-180' : ''}`} />
                                     </button>
                                     {activeSection === 'summary' && (
                                         <div className="p-4 pt-2 border-t border-slate-100 dark:border-slate-800">
-                                            <textarea className="input-field-modern min-h-[120px]" placeholder="Breve resumo..." value={resumeData.personalInfo.summary} onChange={(e) => handleChange('personalInfo', 'summary', e.target.value)} />
+                                            <div className="flex gap-2 mb-2">
+                                                <button onMouseDown={(e) => { e.preventDefault(); handleFormat('summary-input', 'bold', 'personalInfo', undefined, 'summary') }} className="p-1 hover:bg-slate-100 rounded text-slate-600"><Bold size={14} /></button>
+                                                <button onMouseDown={(e) => { e.preventDefault(); handleFormat('summary-input', 'list', 'personalInfo', undefined, 'summary') }} className="p-1 hover:bg-slate-100 rounded text-slate-600"><List size={14} /></button>
+                                            </div>
+                                            <textarea id="summary-input" className="input-field-modern min-h-[120px]" placeholder="Breve resumo..." value={resumeData.personalInfo.summary} onChange={(e) => handleChange('personalInfo', 'summary', e.target.value)} />
                                         </div>
                                     )}
                                 </div>
-
-                                {/* Experiência Profissional */}
                                 <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
-                                    <button onClick={() => toggleSection('experience')} className="flex w-full items-center justify-between p-4 hover:bg-slate-50 transition-colors text-left">
+                                    <button onClick={() => toggleSection('experience')} className="flex w-full items-center justify-between p-4 hover:bg-slate-50 transition-colors text-left bg-blue-50/30">
                                         <div className="flex items-center gap-3">
-                                            <div className="bg-slate-100 p-1.5 rounded-md text-slate-600"><Briefcase size={16} /></div>
-                                            <span className="font-bold text-sm text-slate-700">Experiência Profissional</span>
+                                            <div className="bg-blue-100 p-1.5 rounded-md text-blue-600"><Briefcase size={16} /></div>
+                                            <span className="font-bold text-sm text-slate-800">Experiência Profissional</span>
                                         </div>
                                         <ChevronDown size={16} className={`text-slate-400 transition-transform ${activeSection === 'experience' ? 'rotate-180' : ''}`} />
                                     </button>
@@ -439,7 +452,6 @@ const Editor = () => {
                                                             <label className="input-label">Empresa</label>
                                                             <input className="input-field-modern" value={exp.company} onChange={(e) => handleArrayChange('experience', i, 'company', e.target.value)} />
                                                         </div>
-                                                        {/* Dates split with Mask */}
                                                         <div>
                                                             <label className="input-label mb-1">Período</label>
                                                             <div className="grid grid-cols-2 gap-3 mb-2">
@@ -464,14 +476,19 @@ const Editor = () => {
                                                                 <span className="text-[11px] font-bold text-slate-500 uppercase">Trabalho aqui atualmente</span>
                                                             </label>
                                                         </div>
-
                                                         <div>
                                                             <label className="input-label">Local</label>
                                                             <input className="input-field-modern" value={exp.location} onChange={(e) => handleArrayChange('experience', i, 'location', e.target.value)} />
                                                         </div>
                                                         <div>
-                                                            <label className="input-label">Descrição</label>
-                                                            <textarea className="input-field-modern min-h-[80px]" rows="3" value={exp.description} onChange={(e) => handleArrayChange('experience', i, 'description', e.target.value)} />
+                                                            <div className="flex gap-2 mb-1 justify-between items-end">
+                                                                <label className="input-label mb-0">Descrição</label>
+                                                                <div className="flex gap-2">
+                                                                    <button onMouseDown={(e) => { e.preventDefault(); handleFormat(`desc-${i}`, 'bold', 'experience', i, 'description') }} className="p-1 hover:bg-slate-100 rounded text-slate-600"><Bold size={12} /></button>
+                                                                    <button onMouseDown={(e) => { e.preventDefault(); handleFormat(`desc-${i}`, 'list', 'experience', i, 'description') }} className="p-1 hover:bg-slate-100 rounded text-slate-600"><List size={12} /></button>
+                                                                </div>
+                                                            </div>
+                                                            <textarea id={`desc-${i}`} className="input-field-modern min-h-[80px]" rows="3" value={exp.description} onChange={(e) => handleArrayChange('experience', i, 'description', e.target.value)} />
                                                         </div>
                                                     </div>
                                                 </div>
@@ -482,13 +499,11 @@ const Editor = () => {
                                         </div>
                                     )}
                                 </div>
-
-                                {/* Escolaridade */}
                                 <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
-                                    <button onClick={() => toggleSection('education')} className="flex w-full items-center justify-between p-4 hover:bg-slate-50 transition-colors text-left">
+                                    <button onClick={() => toggleSection('education')} className="flex w-full items-center justify-between p-4 hover:bg-slate-50 transition-colors text-left bg-blue-50/30">
                                         <div className="flex items-center gap-3">
-                                            <div className="bg-slate-100 p-1.5 rounded-md text-slate-600"><GraduationCap size={16} /></div>
-                                            <span className="font-bold text-sm text-slate-700">Escolaridade</span>
+                                            <div className="bg-blue-100 p-1.5 rounded-md text-blue-600"><GraduationCap size={16} /></div>
+                                            <span className="font-bold text-sm text-slate-800">Escolaridade</span>
                                         </div>
                                         <ChevronDown size={16} className={`text-slate-400 transition-transform ${activeSection === 'education' ? 'rotate-180' : ''}`} />
                                     </button>
@@ -506,7 +521,6 @@ const Editor = () => {
                                                             <label className="input-label">Instituição</label>
                                                             <input className="input-field-modern" value={edu.school} onChange={(e) => handleArrayChange('education', i, 'school', e.target.value)} />
                                                         </div>
-                                                        {/* Dates split with Mask */}
                                                         <div>
                                                             <label className="input-label mb-1">Período</label>
                                                             <div className="grid grid-cols-2 gap-3 mb-2">
@@ -531,7 +545,6 @@ const Editor = () => {
                                                                 <span className="text-[11px] font-bold text-slate-500 uppercase">Estudo aqui atualmente</span>
                                                             </label>
                                                         </div>
-
                                                         <div>
                                                             <label className="input-label">Local</label>
                                                             <input className="input-field-modern" value={edu.location} onChange={(e) => handleArrayChange('education', i, 'location', e.target.value)} />
@@ -545,13 +558,11 @@ const Editor = () => {
                                         </div>
                                     )}
                                 </div>
-
-                                {/* Habilidades */}
                                 <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
-                                    <button onClick={() => toggleSection('skills')} className="flex w-full items-center justify-between p-4 hover:bg-slate-50 transition-colors text-left">
+                                    <button onClick={() => toggleSection('skills')} className="flex w-full items-center justify-between p-4 hover:bg-slate-50 transition-colors text-left bg-blue-50/30">
                                         <div className="flex items-center gap-3">
-                                            <div className="bg-slate-100 p-1.5 rounded-md text-slate-600"><Wrench size={16} /></div>
-                                            <span className="font-bold text-sm text-slate-700">Habilidades</span>
+                                            <div className="bg-blue-100 p-1.5 rounded-md text-blue-600"><Wrench size={16} /></div>
+                                            <span className="font-bold text-sm text-slate-800">Habilidades</span>
                                         </div>
                                         <ChevronDown size={16} className={`text-slate-400 transition-transform ${activeSection === 'skills' ? 'rotate-180' : ''}`} />
                                     </button>
@@ -579,8 +590,6 @@ const Editor = () => {
                                 </button>
                             </div>
                         </div>
-
-                        {/* Sticky Footer */}
                         <div className="p-6 pt-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 z-20 shadow-[0_-5px_15px_-5px_rgba(0,0,0,0.05)]">
                             <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-800 shadow-sm relative overflow-hidden">
                                 <span className="text-[10px] font-bold text-blue-900 dark:text-blue-100 uppercase block mb-1">Plano Gratuito</span>
@@ -597,7 +606,6 @@ const Editor = () => {
 
                     {/* Preview Area */}
                     <section className="flex-1 bg-[#525659] h-full overflow-hidden relative flex flex-col items-center justify-start pt-10 pb-20">
-                        {/* Zoom Controls */}
                         <div className="fixed bottom-8 left-1/2 transform translate-x-[100px] z-50 bg-[#1e293b] text-white px-2 py-1.5 rounded-full flex items-center gap-3 shadow-2xl border border-slate-600">
                             <button onClick={() => setZoom(prev => Math.max(50, prev - 10))} className="hover:bg-slate-700 p-1 rounded-full text-slate-300 hover:text-white"><Minus size={14} /></button>
                             <span className="text-xs font-bold min-w-[40px] text-center">{zoom}%</span>
@@ -613,54 +621,56 @@ const Editor = () => {
                                     transform: `scale(${zoom / 100})`
                                 }}
                             >
-                                <div className="p-12 pl-16 pr-16 flex flex-col h-full text-[#1e293b] font-sans">
-                                    {/* Header */}
-                                    <div className="mb-12">
-                                        <h1 className="text-[32px] font-extrabold text-[#1e3a8a] mb-1 tracking-tight leading-none">{resumeData.personalInfo.fullName}</h1>
-                                        <p className="text-lg font-bold text-[#4560b5] tracking-wide">{resumeData.personalInfo.role}</p>
+                                <div className="p-0 flex flex-col h-full text-[#1e293b] font-sans">
+                                    {/* Header with background - Added padding and bg */}
+                                    <div className="mb-12 bg-slate-50 px-16 py-12 border-b border-slate-100">
+                                        <h1 className="text-[32px] font-extrabold text-[#1e3a8a] mb-0 tracking-tight leading-none">{resumeData.personalInfo.fullName}</h1>
+                                        <p className="text-base font-bold text-[#4560b5] tracking-wide mt-1">{resumeData.personalInfo.role}</p>
                                     </div>
-                                    <div className="flex flex-col gap-12">
+                                    <div className="flex flex-col gap-10 px-16 pb-16">
                                         {/* DADOS PESSOAIS */}
                                         <div>
-                                            <h3 className="text-[10px] font-extrabold text-[#1e3a8a] uppercase tracking-widest mb-4">Dados Pessoais</h3>
-                                            <div className="text-xs text-slate-600 space-y-1.5 font-medium leading-relaxed">
-                                                {resumeData.personalInfo.email && <div className="flex gap-1"><span className="font-bold text-[#1e3a8a]">E-mail:</span> {resumeData.personalInfo.email}</div>}
-                                                {resumeData.personalInfo.phone && <div className="flex gap-1"><span className="font-bold text-[#1e3a8a]">Telefone:</span> {resumeData.personalInfo.phone}</div>}
-                                                {resumeData.personalInfo.nationality && <div className="flex gap-1"><span className="font-bold text-[#1e3a8a]">Nacionalidade:</span> {resumeData.personalInfo.nationality}</div>}
-                                                {(resumeData.personalInfo.locations || []).length > 0 && (
-                                                    <div className="flex gap-1">
-                                                        <span className="font-bold text-[#1e3a8a] whitespace-nowrap">Endereço:</span>
-                                                        <span>{(resumeData.personalInfo.locations || []).join(' • ')}</span>
-                                                    </div>
-                                                )}
-                                                {enabledSocials.linkedin && resumeData.personalInfo.linkedin && (
-                                                    <div className="flex gap-1"><span className="font-bold text-[#1e3a8a]">LinkedIn:</span> <a href={resumeData.personalInfo.linkedin} target="_blank" rel="noreferrer" className="hover:underline">{resumeData.personalInfo.linkedin}</a></div>
-                                                )}
-                                                {enabledSocials.portfolio && resumeData.personalInfo.portfolio && (
-                                                    <div className="flex gap-1"><span className="font-bold text-[#1e3a8a]">Portfólio:</span> <a href={resumeData.personalInfo.portfolio} target="_blank" rel="noreferrer" className="hover:underline">{resumeData.personalInfo.portfolio}</a></div>
-                                                )}
-                                                {enabledSocials.instagram && resumeData.personalInfo.instagram && (
-                                                    <div className="flex gap-1"><span className="font-bold text-[#1e3a8a]">Instagram:</span> {resumeData.personalInfo.instagram}</div>
-                                                )}
-                                                {enabledSocials.youtube && resumeData.personalInfo.youtube && (
-                                                    <div className="flex gap-1"><span className="font-bold text-[#1e3a8a]">YouTube:</span> {resumeData.personalInfo.youtube}</div>
-                                                )}
+                                            <h3 className="text-[10px] font-extrabold text-[#1e3a8a] uppercase tracking-widest mb-4 border-b border-gray-100 pb-2">Dados Pessoais</h3>
+                                            <div className="grid grid-cols-[140px_1fr] gap-6">
+                                                <div className="text-right"></div>
+                                                <div className="text-xs text-slate-600 space-y-1.5 font-medium leading-relaxed">
+                                                    {resumeData.personalInfo.email && <div className="flex gap-1"><span className="font-bold text-[#1e3a8a]">E-mail:</span> {resumeData.personalInfo.email}</div>}
+                                                    {resumeData.personalInfo.phone && <div className="flex gap-1"><span className="font-bold text-[#1e3a8a]">Telefone:</span> {resumeData.personalInfo.phone}</div>}
+                                                    {resumeData.personalInfo.nationality && <div className="flex gap-1"><span className="font-bold text-[#1e3a8a]">Nacionalidade:</span> {resumeData.personalInfo.nationality}</div>}
+                                                    {(resumeData.personalInfo.locations || []).length > 0 && (
+                                                        <div className="flex gap-1">
+                                                            <span className="font-bold text-[#1e3a8a] whitespace-nowrap">Endereço:</span>
+                                                            <span>{(resumeData.personalInfo.locations || []).join(' • ')}</span>
+                                                        </div>
+                                                    )}
+                                                    {enabledSocials.linkedin && resumeData.personalInfo.linkedin && (
+                                                        <div className="flex gap-1"><span className="font-bold text-[#1e3a8a]">LinkedIn:</span> <a href={resumeData.personalInfo.linkedin} target="_blank" rel="noreferrer" className="hover:underline">{resumeData.personalInfo.linkedin}</a></div>
+                                                    )}
+                                                    {enabledSocials.portfolio && resumeData.personalInfo.portfolio && (
+                                                        <div className="flex gap-1"><span className="font-bold text-[#1e3a8a]">Portfólio:</span> <a href={resumeData.personalInfo.portfolio} target="_blank" rel="noreferrer" className="hover:underline">{resumeData.personalInfo.portfolio}</a></div>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
+
                                         {/* SOBRE MIM */}
                                         {resumeData.personalInfo.summary && (
                                             <div>
-                                                <h3 className="text-[10px] font-extrabold text-[#1e3a8a] uppercase tracking-widest mb-3">Sobre Mim</h3>
-                                                <div className="text-[11px] text-slate-600 leading-relaxed whitespace-pre-line text-justify">
-                                                    {resumeData.personalInfo.summary}
+                                                <h3 className="text-[10px] font-extrabold text-[#1e3a8a] uppercase tracking-widest mb-3 border-b border-gray-100 pb-2">Sobre Mim</h3>
+                                                <div className="grid grid-cols-[140px_1fr] gap-6">
+                                                    <div className="text-right"></div>
+                                                    <div className="text-[11px] text-slate-600 leading-relaxed text-justify">
+                                                        {renderRichText(resumeData.personalInfo.summary)}
+                                                    </div>
                                                 </div>
                                             </div>
                                         )}
+
                                         {/* EXPERIÊNCIA */}
                                         {resumeData.experience.length > 0 && (
                                             <div>
-                                                <h3 className="text-[10px] font-extrabold text-[#1e3a8a] uppercase tracking-widest mb-6">Experiência</h3>
-                                                <div className="space-y-8">
+                                                <h3 className="text-[10px] font-extrabold text-[#1e3a8a] uppercase tracking-widest mb-6 border-b border-gray-100 pb-2">Experiência</h3>
+                                                <div className="space-y-6">
                                                     {resumeData.experience.map((exp, i) => (
                                                         <div key={i} className="grid grid-cols-[140px_1fr] gap-6">
                                                             <div className="text-right">
@@ -672,17 +682,20 @@ const Editor = () => {
                                                             <div>
                                                                 <h4 className="text-[12px] font-extrabold text-[#1e3a8a] mb-0.5">{exp.position}</h4>
                                                                 <p className="text-[11px] font-bold text-slate-500 mb-2">{exp.company}</p>
-                                                                <p className="text-[11px] text-slate-600 leading-relaxed whitespace-pre-line text-justify">{exp.description}</p>
+                                                                <div className="text-[11px] text-slate-600 leading-relaxed text-justify">
+                                                                    {renderRichText(exp.description)}
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     ))}
                                                 </div>
                                             </div>
                                         )}
+
                                         {/* EDUCAÇÃO */}
                                         {resumeData.education.length > 0 && (
                                             <div>
-                                                <h3 className="text-[10px] font-extrabold text-[#1e3a8a] uppercase tracking-widest mb-6">Educação</h3>
+                                                <h3 className="text-[10px] font-extrabold text-[#1e3a8a] uppercase tracking-widest mb-6 border-b border-gray-100 pb-2">Educação</h3>
                                                 <div className="space-y-5">
                                                     {resumeData.education.map((edu, i) => (
                                                         <div key={i} className="grid grid-cols-[140px_1fr] gap-6">
@@ -701,32 +714,38 @@ const Editor = () => {
                                                 </div>
                                             </div>
                                         )}
-                                        {/* SKILLS & IDIOMAS */}
+
+                                        {/* SKILLS & IDIOMAS - Left Aligned Flex */}
                                         {(resumeData.languages.length > 0 || resumeData.skills.length > 0) && (
-                                            <div className="grid grid-cols-2 gap-10 pt-4">
-                                                {resumeData.languages.length > 0 && (
-                                                    <div>
-                                                        <h3 className="text-[10px] font-extrabold text-[#1e3a8a] uppercase tracking-widest mb-4">Idiomas</h3>
-                                                        <div className="space-y-3">
-                                                            {resumeData.languages.map((lang, i) => (
-                                                                <div key={i}>
-                                                                    <span className="text-[11px] font-bold text-[#2563eb] block mb-0.5">{lang.name}</span>
-                                                                    <span className="text-[10px] text-slate-500 block">{lang.level}</span>
-                                                                </div>
-                                                            ))}
+                                            <div className="grid grid-cols-[140px_1fr] gap-6 border-t border-gray-100 pt-6">
+                                                <div className="text-right">
+                                                    {resumeData.languages.length > 0 && (
+                                                        <div>
+                                                            <h3 className="text-[10px] font-extrabold text-[#1e3a8a] uppercase tracking-widest mb-4">Idiomas</h3>
+                                                            <div className="space-y-3">
+                                                                {resumeData.languages.map((lang, i) => (
+                                                                    <div key={i}>
+                                                                        <span className="text-[11px] font-bold text-[#2563eb] block mb-0.5">{lang.name}</span>
+                                                                        <span className="text-[10px] text-slate-500 block">{lang.level}</span>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                )}
-                                                {resumeData.skills.length > 0 && (
-                                                    <div>
-                                                        <h3 className="text-[10px] font-extrabold text-[#1e3a8a] uppercase tracking-widest mb-4">Habilidades</h3>
-                                                        <div className="grid grid-cols-2 gap-y-2 gap-x-4">
-                                                            {resumeData.skills.map((skill, i) => (
-                                                                <span key={i} className="text-[11px] font-bold text-[#2563eb] break-words">{skill}</span>
-                                                            ))}
+                                                    )}
+                                                </div>
+                                                {/* Flex instead of Grid for left align */}
+                                                <div className="flex gap-16">
+                                                    {resumeData.skills.length > 0 && (
+                                                        <div>
+                                                            <h3 className="text-[10px] font-extrabold text-[#1e3a8a] uppercase tracking-widest mb-4">Habilidades</h3>
+                                                            <div className="grid grid-cols-2 gap-y-2 gap-x-16">
+                                                                {resumeData.skills.map((skill, i) => (
+                                                                    <span key={i} className="text-[11px] font-bold text-[#2563eb] break-words">{skill}</span>
+                                                                ))}
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                )}
+                                                    )}
+                                                </div>
                                             </div>
                                         )}
                                     </div>

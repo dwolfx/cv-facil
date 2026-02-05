@@ -1,14 +1,14 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { Toaster } from 'sonner'
 import Landing from './pages/Landing'
 import Login from './pages/Auth/Login'
 import Editor from './pages/Editor'
-
-// Placeholder for Dashboard
-const Dashboard = () => <div className="container" style={{ paddingTop: '2rem' }}><h1>Dashboard Interna</h1><p>Bem-vindo à área logada.</p></div>
+import Dashboard from './pages/Dashboard'
 
 function App() {
   return (
     <Router>
+      <Toaster richColors position="top-center" />
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
