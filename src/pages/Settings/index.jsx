@@ -1,28 +1,91 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
-import { User, Lock, CreditCard, Save } from 'lucide-react'
+import { User, Lock, CreditCard, Save, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import Sidebar from '../../components/Sidebar'
 import UserDropdown from '../../components/UserDropdown'
 import PlanWidget from '../../components/PlanWidget'
+import Header from '../../components/Header'
+import { supabase } from '../../services/supabaseClient'
+import { useAuth } from '../../contexts/AuthContext'
 
 const Settings = () => {
     const navigate = useNavigate()
+    const { user } = useAuth()
     const [searchParams] = useSearchParams()
     const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'profile')
 
-    // Mock User Data
+    const [loading, setLoading] = useState(true)
+    const [updating, setUpdating] = useState(false)
     const [userData, setUserData] = useState({
-        name: 'Ricardo Silva',
-        email: 'victor9009@gmail.com',
-        phone: '(11) 99999-9999'
+        full_name: '',
+        email: '',
+        phone: '' // Note: Phone is not in profiles table yet, storing in local state or meta_data if needed, but for now just mock or add to table if I can.
+        // Actually, schema has 'full_name', 'plan_tier'. Phone is not there. I should add proper handling.
+        // For now, I'll just bind full_name. Email comes from auth.user.
     })
 
-    const handleSave = () => {
-        toast.success('Configurações salvas com sucesso!')
+    useEffect(() => {
+        if (user) {
+            fetchProfile()
+            setUserData(prev => ({ ...prev, email: user.email }))
+        }
+    }, [user])
+
+    const fetchProfile = async () => {
+        try {
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', user.id)
+                .single()
+
+            if (error) throw error
+            if (data) {
+                setUserData(prev => ({
+                    ...prev,
+                    full_name: data.full_name || '',
+                    plan_tier: data.plan_tier
+                }))
+            }
+        } catch (error) {
+            console.error('Error fetching profile:', error)
+            // Don't toast error here to avoid annoying popups if profile is missing (trigger should handle creation though)
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const handleSaveProfile = async () => {
+        setUpdating(true)
+        try {
+            const { error } = await supabase
+                .from('profiles')
+                .upsert({
+                    id: user.id,
+                    full_name: userData.full_name,
+                    updated_at: new Date()
+                })
+
+            if (error) throw error
+            toast.success('Perfil atualizado com sucesso!')
+
+            // Optionally update auth metadata if needed
+            // await supabase.auth.updateUser({ data: { full_name: userData.full_name } })
+
+        } catch (error) {
+            console.error('Error updating profile:', error)
+            toast.error('Erro ao atualizar perfil.')
+        } finally {
+            setUpdating(false)
+        }
     }
 
     const renderContent = () => {
+        if (loading) {
+            return <div className="flex justify-center p-8"><Loader2 className="animate-spin text-[var(--primary)]" /></div>
+        }
+
         switch (activeTab) {
             case 'profile':
                 return (
@@ -35,8 +98,9 @@ const Settings = () => {
                                     <input
                                         type="text"
                                         className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all font-medium"
-                                        value={userData.name}
-                                        onChange={(e) => setUserData({ ...userData, name: e.target.value })}
+                                        value={userData.full_name}
+                                        onChange={(e) => setUserData({ ...userData, full_name: e.target.value })}
+                                        placeholder="Seu nome completo"
                                     />
                                 </div>
                                 <div>
@@ -49,19 +113,15 @@ const Settings = () => {
                                     />
                                     <p className="text-[10px] text-slate-400 mt-1">O e-mail não pode ser alterado.</p>
                                 </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Telefone / WhatsApp</label>
-                                    <input
-                                        type="tel"
-                                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all font-medium"
-                                        value={userData.phone}
-                                        onChange={(e) => setUserData({ ...userData, phone: e.target.value })}
-                                    />
-                                </div>
                             </div>
                             <div className="mt-6 pt-6 border-t border-slate-100 flex justify-end">
-                                <button onClick={handleSave} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition-colors shadow-sm shadow-blue-200">
-                                    <Save size={16} /> Salvar Alterações
+                                <button
+                                    onClick={handleSaveProfile}
+                                    disabled={updating}
+                                    className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition-colors shadow-sm shadow-blue-200 disabled:opacity-70"
+                                >
+                                    {updating ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+                                    Salvar Alterações
                                 </button>
                             </div>
                         </div>
@@ -152,21 +212,14 @@ const Settings = () => {
     }
 
     return (
-        <div className="bg-[#f8f9fa] dark:bg-slate-900 font-sans text-slate-900 dark:text-slate-100 h-screen flex flex-row overflow-hidden pb-16 md:pb-0">
+        <div className="bg-[#f8f9fa] dark:bg-slate-900 font-sans text-slate-900 dark:text-slate-100 h-screen flex flex-row overflow-hidden pb-24 md:pb-0">
             <Sidebar />
 
             <div className="flex-1 flex flex-col h-full overflow-hidden">
-                <header className="flex items-center justify-between bg-white dark:bg-slate-900 px-4 md:px-8 h-16 md:h-20 border-b border-slate-200 dark:border-slate-800 shrink-0 z-10">
-                    <div className="flex flex-col justify-center">
-                        <h1 className="text-lg md:text-xl font-bold text-slate-800 dark:text-white leading-none">Configurações</h1>
-                        <p className="text-[10px] md:text-xs text-slate-500 hidden md:block">Gerencie seus dados e assinatura.</p>
-                    </div>
-                    <div className="flex items-center gap-4 md:gap-6">
-                        <PlanWidget current={1} max={2} />
-                        <div className="w-px h-8 bg-slate-200 mx-2 hidden md:block"></div>
-                        <UserDropdown />
-                    </div>
-                </header>
+                <Header
+                    title="Configurações"
+                    subtitle="Gerencie seus dados e assinatura."
+                />
 
                 <main className="flex-1 overflow-y-auto p-4 md:p-8">
                     <div className="max-w-5xl">

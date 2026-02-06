@@ -14,7 +14,7 @@ const Landing = () => {
                         CV<span>Fácil</span>
                     </div>
                     <div style={{ display: 'flex', gap: '1rem' }}>
-                        <Link to="/editor" className="btn btn-secondary">Entrar</Link>
+                        <Link to="/dashboard" className="btn btn-secondary">Entrar</Link>
                         <Link to="/editor" className="btn btn-primary" style={{ background: 'var(--gradient-main)', border: 'none' }}>
                             Criar Grátis
                         </Link>

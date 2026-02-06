@@ -1,12 +1,14 @@
-
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
     Download, UploadCloud, ChevronDown, PlusCircle, Trash2,
     Mail, Phone, MapPin, Briefcase, GraduationCap,
     Wrench, User, Star, Minus, Plus, FileText, Globe,
-    Layout, Settings, Bold, List
+    Layout, Settings, Bold, List, Edit2, Save, Loader2, RefreshCw
 } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { supabase } from '../../services/supabaseClient'
+import { useAuth } from '../../contexts/AuthContext'
+import { toast } from 'sonner'
 import './Editor.css'
 
 // Initial State 
@@ -85,13 +87,66 @@ const initialResumeState = {
 
 import Sidebar from '../../components/Sidebar'
 import UserDropdown from '../../components/UserDropdown'
-import PlanWidget from '../../components/PlanWidget'
+import Header from '../../components/Header'
+import PlanWidget from '../../components/PlanWidget' // Assuming this component exists and is needed
 
 const Editor = () => {
+    const { user } = useAuth()
+    const navigate = useNavigate()
+    const [searchParams] = useSearchParams()
+    const resumeId = searchParams.get('id')
+
     const [resumeData, setResumeData] = useState(initialResumeState)
     const [activeSection, setActiveSection] = useState('personal')
     const [zoom, setZoom] = useState(100)
     const [activeMobileTab, setActiveMobileTab] = useState('edit') // 'edit' | 'preview'
+    const [submitting, setSubmitting] = useState(false)
+    const [loading, setLoading] = useState(!!resumeId)
+
+    // Fetch Resume if ID is present
+    useEffect(() => {
+        if (resumeId && user) {
+            fetchResume(resumeId)
+        } else {
+            setLoading(false)
+        }
+    }, [resumeId, user])
+
+    const fetchResume = async (id) => {
+        setLoading(true)
+        try {
+            const { data, error } = await supabase
+                .from('resumes')
+                .select('*')
+                .eq('id', id)
+                .single()
+
+            if (error) throw error
+            if (data && data.content) {
+                setResumeData(data.content)
+            }
+        } catch (error) {
+            console.error('Error fetching resume:', error)
+            toast.error('Erro ao carregar currículo.')
+            navigate('/dashboard')
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    // Auto-set zoom for mobile
+    useEffect(() => {
+        const handleResize = () => {
+            if (window.innerWidth < 768) {
+                // Approximate scale for mobile logic
+                const idealZoom = Math.floor((window.innerWidth - 32) / 800 * 100)
+                setZoom(Math.max(30, idealZoom))
+            } else {
+                setZoom(100)
+            }
+        }
+        handleResize()
+    }, [])
 
     // Socials visibility toggle state
     const [enabledSocials, setEnabledSocials] = useState({
@@ -172,6 +227,58 @@ const Editor = () => {
         return Math.min(score, 100);
     }
     const strength = calculateStrength();
+
+    const handleSave = async () => {
+        if (!user) return
+        setSubmitting(true)
+
+        try {
+            const resumeToSave = {
+                user_id: user.id,
+                title: resumeData.personalInfo.role || 'Sem Título',
+                content: resumeData,
+                strength: strength,
+                updated_at: new Date()
+            }
+
+            let error
+            let data
+
+            if (resumeId) {
+                // Update
+                const res = await supabase
+                    .from('resumes')
+                    .update(resumeToSave)
+                    .eq('id', resumeId)
+                    .select()
+                error = res.error
+                data = res.data
+            } else {
+                // Insert
+                const res = await supabase
+                    .from('resumes')
+                    .insert(resumeToSave)
+                    .select()
+                error = res.error
+                data = res.data
+            }
+
+            if (error) throw error
+
+            toast.success('Currículo salvo com sucesso!')
+
+            // If new resume, redirect to URL with ID
+            if (!resumeId && data && data[0]) {
+                navigate(`/editor?id=${data[0].id}`, { replace: true })
+            }
+
+        } catch (error) {
+            console.error('Error saving resume:', error)
+            toast.error('Erro ao salvar currículo.')
+        } finally {
+            setSubmitting(false)
+        }
+    }
 
     const toggleSection = (section) => setActiveSection(activeSection === section ? null : section)
 
@@ -277,47 +384,49 @@ const Editor = () => {
     }
 
     return (
-        <div className="bg-[#f8f9fa] dark:bg-slate-900 font-sans text-slate-900 dark:text-slate-100 h-screen flex flex-row overflow-hidden pb-16 md:pb-0">
+        <div className="bg-[#f8f9fa] dark:bg-slate-900 font-sans text-slate-900 dark:text-slate-100 h-screen flex flex-row overflow-hidden pb-24 md:pb-0">
             {/* Shared Sidebar */}
             <Sidebar />
 
             <div className="flex-1 flex flex-col h-full overflow-hidden">
-                <header className="flex items-center justify-between bg-white dark:bg-slate-900 px-4 md:px-6 h-16 border-b border-slate-200 dark:border-slate-800 shrink-0 z-10 relative">
-                    <div className="flex flex-col justify-center">
-                        <h1 className="text-lg md:text-xl font-bold text-slate-800 dark:text-white leading-none">Editor de Currículo</h1>
-                        <p className="text-[10px] md:text-xs text-slate-500 hidden md:block">Edite as informações e acompanhe o resultado em tempo real.</p>
+                <Header
+                    title="Editor"
+                    subtitle="Edite as informações e acompanhe o resultado em tempo real."
+                    planCurrent={1}
+                >
+                    <button
+                        onClick={handleSave}
+                        disabled={submitting || loading}
+                        className="flex items-center gap-2 bg-emerald-600 text-white px-2 md:px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-emerald-700 transition-colors shadow-sm shadow-emerald-200 disabled:opacity-70 disabled:cursor-not-allowed"
+                    >
+                        {submitting ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                        <span className="hidden md:inline">Salvar</span>
+                    </button>
 
-                        {/* Mobile Tabs Switcher */}
-                        <div className="flex md:hidden bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg mt-1 w-fit">
-                            <button
-                                onClick={() => setActiveMobileTab('edit')}
-                                className={`px-3 py-1 text-[10px] font-bold rounded-md transition-all ${activeMobileTab === 'edit' ? 'bg-white shadow-sm text-[var(--primary)]' : 'text-slate-500'}`}
-                            >
-                                Editar
-                            </button>
-                            <button
-                                onClick={() => setActiveMobileTab('preview')}
-                                className={`px-3 py-1 text-[10px] font-bold rounded-md transition-all ${activeMobileTab === 'preview' ? 'bg-white shadow-sm text-[var(--primary)]' : 'text-slate-500'}`}
-                            >
-                                Visualizar
-                            </button>
-                        </div>
-                    </div>
+                    <button className="flex items-center gap-2 bg-[var(--primary)] text-white px-2 md:px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-orange-600 transition-colors shadow-sm shadow-orange-200">
+                        <Download size={14} /> <span className="hidden md:inline">Exportar PDF</span><span className="md:hidden">PDF</span>
+                    </button>
+                </Header>
 
-                    <div className="flex items-center gap-2 md:gap-4">
-                        <button className="flex items-center gap-2 bg-[var(--primary)] text-white px-2 md:px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-orange-600 transition-colors shadow-sm shadow-orange-200">
-                            <Download size={14} /> <span className="hidden md:inline">Exportar PDF</span><span className="md:hidden">PDF</span>
+                {/* Mobile Tabs Switcher - Separate Bar */}
+                <div className="md:hidden flex items-center justify-center p-2 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 shrink-0">
+                    <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-lg w-full max-w-[280px]">
+                        <button
+                            onClick={() => setActiveMobileTab('edit')}
+                            className={`flex-1 flex items-center justify-center gap-2 py-1.5 text-xs font-bold rounded-md transition-all ${activeMobileTab === 'edit' ? 'bg-white shadow-sm text-[var(--primary)]' : 'text-slate-500'}`}
+                        >
+                            <Edit2 size={12} /> Editar
                         </button>
-                        <div className="w-px h-8 bg-slate-200 mx-2 hidden md:block"></div>
-
-                        <div className="hidden md:block">
-                            <PlanWidget current={1} max={2} />
-                        </div>
-                        <div className="w-px h-8 bg-slate-200 mx-2 hidden md:block"></div>
-
-                        <UserDropdown />
+                        <button
+                            onClick={() => setActiveMobileTab('preview')}
+                            className={`flex-1 flex items-center justify-center gap-2 py-1.5 text-xs font-bold rounded-md transition-all ${activeMobileTab === 'preview' ? 'bg-white shadow-sm text-[var(--primary)]' : 'text-slate-500'}`}
+                        >
+                            Visualizar
+                        </button>
                     </div>
-                </header>
+                </div>
+
+
 
                 <main className="flex flex-1 overflow-hidden relative">
                     <aside className={`w-full md:w-[380px] bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col h-full z-10 shrink-0 ${activeMobileTab === 'edit' ? 'flex' : 'hidden md:flex'}`}>
@@ -768,7 +877,7 @@ const Editor = () => {
                     </section>
                 </main>
             </div>
-        </div>
+        </div >
     )
 }
 

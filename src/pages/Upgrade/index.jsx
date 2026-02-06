@@ -7,6 +7,8 @@ import Sidebar from '../../components/Sidebar'
 import UserDropdown from '../../components/UserDropdown'
 import PlanWidget from '../../components/PlanWidget'
 
+import Header from '../../components/Header'
+
 const Upgrade = () => {
 
     const handleSubscribe = (plan) => {
@@ -18,29 +20,22 @@ const Upgrade = () => {
     }
 
     return (
-        <div className="bg-[#f8f9fa] dark:bg-slate-900 font-sans text-slate-900 dark:text-slate-100 h-screen flex flex-row overflow-hidden">
+        <div className="bg-[#f8f9fa] dark:bg-slate-900 font-sans text-slate-900 dark:text-slate-100 h-screen flex flex-row overflow-hidden pb-24 md:pb-0">
             {/* Shared Sidebar */}
             <Sidebar />
 
             <div className="flex-1 flex flex-col h-full overflow-hidden">
-                <header className="flex items-center justify-between bg-white dark:bg-slate-900 px-8 h-20 border-b border-slate-200 dark:border-slate-800 shrink-0 z-10">
-                    <div className="flex flex-col justify-center">
-                        <h1 className="text-xl font-bold text-slate-800 dark:text-white leading-none">Seja Premium</h1>
-                        <p className="text-xs text-slate-500">Desbloqueie todo o potencial da sua carreira.</p>
-                    </div>
-                    <div className="flex items-center gap-6">
-                        <PlanWidget current={1} max={2} />
-                        <div className="w-px h-8 bg-slate-200 mx-2"></div>
-                        <UserDropdown />
-                    </div>
-                </header>
+                <Header
+                    title="Seja Premium"
+                    subtitle="Desbloqueie todo o potencial da sua carreira."
+                />
 
                 <main className="flex-1 overflow-y-auto p-6 md:p-10">
                     <div className="max-w-6xl mx-auto space-y-12">
 
                         {/* Hero Section */}
                         {/* Hero Section */}
-                        <div className="relative max-w-4xl mx-auto py-8">
+                        <div className="relative max-w-4xl mx-auto py-8 overflow-hidden px-4">
                             {/* Visual Blobs (Background) */}
                             <div className="absolute top-[-20%] right-[-10%] w-[300px] h-[300px] rounded-full blur-[80px] opacity-40 z-0 pointer-events-none animate-pulse"
                                 style={{ background: 'var(--gradient-main)' }}></div>

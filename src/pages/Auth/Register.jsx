@@ -3,34 +3,38 @@ import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../../services/supabaseClient'
 import { toast } from 'sonner'
-import { Hexagon, Loader2 } from 'lucide-react'
+import { Hexagon, CheckCircle, Loader2 } from 'lucide-react'
 
-const Login = () => {
+const Register = () => {
     const navigate = useNavigate()
+    const [fullName, setFullName] = useState('')
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [loading, setLoading] = useState(false)
 
-    const handleLogin = async (e) => {
+    const handleRegister = async (e) => {
         e.preventDefault()
         setLoading(true)
 
         try {
-            const { error } = await supabase.auth.signInWithPassword({
+            const { data, error } = await supabase.auth.signUp({
                 email,
-                password
+                password,
+                options: {
+                    data: {
+                        full_name: fullName,
+                    },
+                },
             })
 
             if (error) throw error
 
-            toast.success('Login realizado com sucesso!')
+            toast.success('Conta criada com sucesso!')
             navigate('/dashboard')
         } catch (error) {
             console.error(error)
-            toast.error('Erro ao fazer login', {
-                description: error.message === 'Invalid login credentials'
-                    ? 'E-mail ou senha incorretos.'
-                    : 'Ocorreu um erro ao tentar entrar. Tente novamente.'
+            toast.error('Erro ao criar conta', {
+                description: error.message
             })
         } finally {
             setLoading(false)
@@ -44,11 +48,22 @@ const Login = () => {
                     <div className="bg-[var(--primary)] p-3 rounded-xl mb-4 shadow-lg shadow-orange-200">
                         <Hexagon size={32} className="text-white fill-current" />
                     </div>
-                    <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Bem-vindo de volta!</h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-2">Acesse sua conta para continuar.</p>
+                    <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Crie sua conta</h1>
+                    <p className="text-slate-500 dark:text-slate-400 mt-2">Comece a construir seu futuro hoje.</p>
                 </div>
 
-                <form onSubmit={handleLogin} className="space-y-4">
+                <form onSubmit={handleRegister} className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Nome Completo</label>
+                        <input
+                            type="text"
+                            required
+                            value={fullName}
+                            onChange={(e) => setFullName(e.target.value)}
+                            className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent outline-none transition-all"
+                            placeholder="Seu Nome"
+                        />
+                    </div>
                     <div>
                         <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">E-mail</label>
                         <input
@@ -62,10 +77,7 @@ const Login = () => {
                     </div>
 
                     <div>
-                        <div className="flex justify-between items-center mb-1">
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Senha</label>
-                            <Link to="/forgot-password" className="text-xs text-[var(--primary)] hover:underline">Esqueceu?</Link>
-                        </div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Senha</label>
                         <input
                             type="password"
                             required
@@ -81,14 +93,14 @@ const Login = () => {
                         disabled={loading}
                         className="w-full bg-[var(--primary)] hover:bg-orange-600 text-white font-bold py-3 rounded-lg transition-colors shadow-lg shadow-orange-200 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                     >
-                        {loading ? <Loader2 size={20} className="animate-spin" /> : 'Entrar'}
+                        {loading ? <Loader2 size={20} className="animate-spin" /> : 'Criar Conta'}
                     </button>
                 </form>
 
                 <div className="mt-8 text-center text-sm text-slate-500">
-                    Não tem uma conta?{' '}
-                    <Link to="/register" className="text-[var(--primary)] font-bold hover:underline">
-                        Crie agora
+                    Já tem uma conta?{' '}
+                    <Link to="/login" className="text-[var(--primary)] font-bold hover:underline">
+                        Entrar
                     </Link>
                 </div>
             </div>
@@ -96,4 +108,4 @@ const Login = () => {
     )
 }
 
-export default Login
+export default Register
