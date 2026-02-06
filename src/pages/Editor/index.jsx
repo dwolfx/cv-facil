@@ -5,84 +5,34 @@ import {
     Wrench, User, Star, Minus, Plus, FileText, Globe,
     Layout, Settings, Bold, List, Edit2, Save, Loader2, RefreshCw
 } from 'lucide-react'
+// import html2pdf from 'html2pdf.js'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { supabase } from '../../services/supabaseClient'
 import { useAuth } from '../../contexts/AuthContext'
 import { toast } from 'sonner'
+import { parseResume } from '../../services/localPdfParser'
+import { generateResumePDF } from '../../utils/pdfGenerator'
 import './Editor.css'
 
 // Initial State 
 const initialResumeState = {
     personalInfo: {
-        fullName: 'Victor Hugo Nogueira de Morais',
-        role: 'Product Designer Especialista',
-        email: 'victor9009@gmail.com',
-        phone: '(11) 95156-5851',
-        linkedin: 'https://www.linkedin.com/in/victorhugo/',
+        fullName: '',
+        role: '',
+        email: '',
+        phone: '',
+        linkedin: '',
         portfolio: '',
         instagram: '',
         youtube: '',
-        locations: ['São Paulo / Betim - Brasil'],
-        nationality: 'Brasileiro',
-        summary: 'Product Designer (UX/UI) com sólido background como desenvolvedor Front-End e paixão por solucionar quebra-cabeças complexos.\n\nEspecialista em equilibrar requisitos de conformidade e segurança com experiências de usuário fluidas em setores de alta criticidade como Fintechs, Betting e Saúde.\n\nExperiência liderando projetos de grande impacto e implementando Design Systems escaláveis para empresas como Vivo, Bradesco e Globo.'
+        locations: [],
+        nationality: '',
+        summary: ''
     },
-    experience: [
-        {
-            id: 1,
-            company: 'Entain (SportingBet, BetBoo e BetMGM)',
-            position: 'Product Designer Especialista',
-            startDate: '08/2024',
-            endDate: '',
-            isCurrent: true,
-            location: 'Remoto',
-            description: '• Conformidade e UX: Liderança da migração e validação legal das plataformas para o mercado brasileiro, garantindo aderência total à legislação local.\n• Retenção e Engajamento: Otimização da experiência na área de Cassino, focando na fidelização do usuário e impulsionando o crescimento trimestral da plataforma.'
-        },
-        {
-            id: 2,
-            company: 'Vivo (Telefônica Brasil)',
-            position: 'Product Design Specialist',
-            startDate: '03/2023',
-            endDate: '07/2024',
-            isCurrent: false,
-            location: 'São Paulo, Brasil',
-            description: '• Infraestrutura Fintech: Liderança no design da área de fintech, incluindo a criação da conta digital e integração com o sistema PIX segundo as normas do Banco Central.\n• Cartões de Crédito: Definição da estratégia de design para o lançamento da nova área de cartões, criando interfaces intuitivas para o aplicativo e portal do cliente.\n• Branding de Operações: Desenvolvimento de nova identidade visual e linguagem de design para modernizar a imagem da área no mercado.'
-        },
-        {
-            id: 3,
-            company: 'Banco Bradesco',
-            position: 'Product Designer Especialista',
-            startDate: '12/2022',
-            endDate: '03/2023',
-            isCurrent: false,
-            location: 'São Paulo, Brasil',
-            description: '• Foco B2B e Eficiência: Otimização da experiência do vendedor em lojas de veículos, agilizando o processo de contratação sem abrir mão das normas bancárias.\n• Mentoria Técnica: Mentoria de designers juniores durante o desenvolvimento da plataforma Autoline, preservando a identidade da marca e auxiliando no desenvolvimento da carreira deles.'
-        }
-    ],
-    education: [
-        {
-            id: 1,
-            school: 'Awari',
-            degree: 'Product Designer Specialist',
-            startDate: '01/2019',
-            endDate: '12/2021',
-            isCurrent: false,
-            location: 'São Paulo, Brasil'
-        },
-        {
-            id: 2,
-            school: 'Centro Educacional SENAC',
-            degree: 'Gestão de Tecnologia da Informação',
-            startDate: '06/2010',
-            endDate: '12/2013',
-            isCurrent: false,
-            location: 'São Paulo, Brasil'
-        }
-    ],
-    skills: ['Auto-didata', 'UX/UI Design', 'Testes de usabilidade', 'Design System', 'Mentoria profissional', 'Prototipagem', 'Pesquisa de mercado', 'Curioso'],
-    languages: [
-        { id: 1, name: 'Inglês', level: 'Avançado' },
-        { id: 2, name: 'Espanhol', level: 'Intermediário' }
-    ]
+    experience: [],
+    education: [],
+    skills: [],
+    languages: []
 }
 
 import Sidebar from '../../components/Sidebar'
@@ -123,7 +73,15 @@ const Editor = () => {
 
             if (error) throw error
             if (data && data.content) {
-                setResumeData(data.content)
+                // Merge with initial state to ensure all fields exist (legacy compatibility)
+                setResumeData(prev => ({
+                    ...initialResumeState,
+                    ...data.content,
+                    personalInfo: {
+                        ...initialResumeState.personalInfo,
+                        ...(data.content.personalInfo || {})
+                    }
+                }))
             }
         } catch (error) {
             console.error('Error fetching resume:', error)
@@ -227,6 +185,68 @@ const Editor = () => {
         return Math.min(score, 100);
     }
     const strength = calculateStrength();
+    const fileInputRef = React.useRef(null)
+
+    // Native Print Integration
+
+    const handleExportPDF = () => {
+        const toastId = toast.loading('Gerando PDF...')
+        try {
+            generateResumePDF(resumeData)
+            toast.success('Download iniciado!', { id: toastId })
+        } catch (error) {
+            console.error(error)
+            toast.error('Erro ao gerar PDF', { id: toastId })
+        }
+    }
+
+    const handleImportResume = async (event) => {
+        const file = event.target.files[0]
+        if (!file) return
+
+        const toastId = toast.loading('Lendo currículo...')
+
+        try {
+            const parsedData = await parseResume(file)
+
+            // Merge parsed data with current state logic (preserving defaults if needed)
+            setResumeData(prev => ({
+                ...prev,
+                personalInfo: {
+                    ...prev.personalInfo,
+                    ...parsedData.personalInfo,
+                    // Keep existing generic if not found? Or overwrite? 
+                    // Let's maximize extraction but keep array structure clean
+                },
+                experience: parsedData.experience.map((exp, i) => ({
+                    id: Date.now() + i, // Generate unique IDs
+                    ...exp,
+                    startDate: '', // Regex extraction might not be perfect for dates yet
+                    endDate: '',
+                    isCurrent: false,
+                    location: ''
+                })),
+                education: parsedData.education.map((edu, i) => ({
+                    id: Date.now() + i + 100,
+                    ...edu,
+                    startDate: '',
+                    endDate: '',
+                    isCurrent: false,
+                    location: ''
+                })),
+                skills: parsedData.skills.length > 0 ? parsedData.skills : prev.skills
+            }))
+
+            toast.success('Currículo importado! Revise os dados.', { id: toastId })
+        } catch (error) {
+            console.error('Import error:', error)
+            toast.error(error.message || 'Erro ao importar currículo.', { id: toastId })
+        } finally {
+            if (fileInputRef.current) {
+                fileInputRef.current.value = '' // Reset input
+            }
+        }
+    }
 
     const handleSave = async () => {
         if (!user) return
@@ -394,6 +414,14 @@ const Editor = () => {
                     subtitle="Edite as informações e acompanhe o resultado em tempo real."
                     planCurrent={1}
                 >
+                    <input
+                        type="file"
+                        accept=".pdf,.docx,.txt"
+                        ref={fileInputRef}
+                        className="hidden"
+                        onChange={handleImportResume}
+                    />
+
                     <button
                         onClick={handleSave}
                         disabled={submitting || loading}
@@ -403,8 +431,12 @@ const Editor = () => {
                         <span className="hidden md:inline">Salvar</span>
                     </button>
 
-                    <button className="flex items-center gap-2 bg-[var(--primary)] text-white px-2 md:px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-orange-600 transition-colors shadow-sm shadow-orange-200">
-                        <Download size={14} /> <span className="hidden md:inline">Exportar PDF</span><span className="md:hidden">PDF</span>
+                    <button
+                        onClick={handleExportPDF}
+                        disabled={submitting || loading}
+                        className="flex items-center gap-2 bg-[var(--primary)] text-white px-2 md:px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-orange-600 transition-colors shadow-sm shadow-orange-200"
+                    >
+                        <Download size={14} /> <span className="hidden md:inline">Gerar Currículo em PDF</span><span className="md:hidden">PDF</span>
                     </button>
                 </Header>
 
@@ -446,7 +478,10 @@ const Editor = () => {
                                     </div>
                                     <p className="text-[10px] text-slate-400 mt-2 leading-tight">Adicione mais informações para completar.</p>
                                 </div>
-                                <button onClick={() => alert("Coming Soon")} className="w-full h-9 mt-4 flex items-center justify-center gap-2 bg-[#0ea5e9] text-white rounded-[4px] text-xs font-bold hover:bg-[#0284c7] transition-colors shadow-sm">
+                                <button
+                                    onClick={() => fileInputRef.current?.click()}
+                                    className="w-full h-9 mt-4 flex items-center justify-center gap-2 bg-[#0ea5e9] text-white rounded-[4px] text-xs font-bold hover:bg-[#0284c7] transition-colors shadow-sm"
+                                >
                                     <UploadCloud size={14} /> Importar Currículo
                                 </button>
                             </div>
@@ -735,6 +770,8 @@ const Editor = () => {
                         </div>
                         <div className="overflow-auto w-full h-full flex items-start justify-center p-4 md:p-8 pb-32 no-scrollbar">
                             <div
+                                id="resume-preview"
+
                                 className="bg-white shadow-2xl origin-top transition-transform duration-200 ease-out flex-shrink-0"
                                 style={{
                                     width: '210mm',
@@ -794,7 +831,7 @@ const Editor = () => {
                                                 <h3 className="text-[10px] font-extrabold text-[#1e3a8a] uppercase tracking-widest mb-6 border-b border-gray-100 pb-2">Experiência</h3>
                                                 <div className="space-y-6">
                                                     {resumeData.experience.map((exp, i) => (
-                                                        <div key={i} className="grid grid-cols-[140px_1fr] gap-6">
+                                                        <div key={i} className="grid grid-cols-[140px_1fr] gap-6 experience-item">
                                                             <div className="text-right">
                                                                 <div className="text-[10px] font-bold text-[#4560b5] mb-1">{exp.location}</div>
                                                                 <div className="text-[10px] text-slate-400 italic">
@@ -820,7 +857,7 @@ const Editor = () => {
                                                 <h3 className="text-[10px] font-extrabold text-[#1e3a8a] uppercase tracking-widest mb-6 border-b border-gray-100 pb-2">Educação</h3>
                                                 <div className="space-y-5">
                                                     {resumeData.education.map((edu, i) => (
-                                                        <div key={i} className="grid grid-cols-[140px_1fr] gap-6">
+                                                        <div key={i} className="grid grid-cols-[140px_1fr] gap-6 school-item">
                                                             <div className="text-right">
                                                                 <div className="text-[10px] font-bold text-[#4560b5] mb-1">{edu.location}</div>
                                                                 <div className="text-[10px] text-slate-400 italic">

@@ -89,3 +89,67 @@
     margin-bottom: 0;
     /* Spacing handled by parent space-y */
 }
+
+/* PRINT STYLES - ATS Friendly PDF */
+@media print {
+    @page {
+        margin: 0;
+        size: auto;
+    }
+
+    /* GLOBAL PRINT RESET */
+    body {
+        visibility: hidden;
+        background-color: white;
+    }
+
+    /* Hide specific UI elements explicitly to be safe */
+    header,
+    nav,
+    aside,
+    .custom-header,
+    .sidebar-container {
+        display: none !important;
+    }
+
+    /* Target the resume specifically */
+    #resume-preview {
+        visibility: visible;
+        position: absolute;
+        left: 0;
+        top: 0;
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        /* Use full width of page */
+        max-width: none;
+        box-shadow: none;
+        border: none;
+        overflow: visible;
+
+        /* Reset any transformations */
+        transform: none !important;
+
+        /* Print Color and Selection settings */
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+    }
+
+    /* Make sure children are visible */
+    #resume-preview * {
+        visibility: visible;
+    }
+
+    /* Pagination Controls */
+    #resume-preview>div>div {
+        page-break-inside: auto;
+    }
+
+    #resume-preview h3,
+    #resume-preview .grid,
+    #resume-preview .school-item,
+    #resume-preview .experience-item {
+        page-break-inside: avoid;
+        break-inside: avoid;
+    }
+}
