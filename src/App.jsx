@@ -4,6 +4,8 @@ import Landing from './pages/Landing'
 import Login from './pages/Auth/Login'
 import Editor from './pages/Editor'
 import Dashboard from './pages/Dashboard'
+import Settings from './pages/Settings'
+import Upgrade from './pages/Upgrade'
 
 function App() {
   return (
@@ -15,6 +17,8 @@ function App() {
         <Route path="/register" element={<Login />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/editor" element={<Editor />} />
+        <Route path="/settings" element={<Settings />} />
+        <Route path="/upgrade" element={<Upgrade />} />
       </Routes>
     </Router>
   )

@@ -100,6 +100,98 @@ const Landing = () => {
                         />
                     </div>
                 </section>
+
+                {/* Pricing Section (New) */}
+                <section className="pricing" id="pricing" style={{ paddingBottom: '6rem' }}>
+                    <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+                        <h2>Planos Flexíveis</h2>
+                        <p style={{ maxWidth: '600px', margin: '0 auto', color: 'var(--text-muted)' }}>
+                            Comece grátis e evolua conforme sua carreira decola.
+                        </p>
+                    </div>
+
+                    <div className="features-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 320px))', justifyContent: 'center' }}>
+
+                        {/* Free */}
+                        <div className="feature-card" style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
+                            <div style={{ marginBottom: '1rem' }}>
+                                <span style={{ background: '#eee', color: '#555', padding: '0.25rem 0.75rem', borderRadius: '1rem', fontSize: '0.8rem', fontWeight: 'bold', textTransform: 'uppercase' }}>Grátis</span>
+                            </div>
+                            <h3 style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>R$ 0</h3>
+                            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Para quem está começando.</p>
+
+                            <ul style={{ listStyle: 'none', padding: 0, margin: '1.5rem 0', flex: 1 }}>
+                                <li style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem', fontSize: '0.9rem' }}>
+                                    <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>✓</span> 2 Currículos
+                                </li>
+                                <li style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem', fontSize: '0.9rem' }}>
+                                    <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>✓</span> Exportação em PDF
+                                </li>
+                                <li style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem', fontSize: '0.9rem' }}>
+                                    <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>✓</span> Otimizado para ATS
+                                </li>
+                            </ul>
+
+                            <Link to="/editor" className="btn btn-secondary" style={{ width: '100%', justifyContent: 'center' }}>
+                                Começar Grátis
+                            </Link>
+                        </div>
+
+                        {/* Pro (Yearly) */}
+                        <div className="feature-card" style={{ display: 'flex', flexDirection: 'column', textAlign: 'left', border: '2px solid var(--primary)', position: 'relative', background: 'white' }}>
+                            <div style={{ position: 'absolute', top: -12, right: 20, background: 'var(--primary)', color: 'white', fontSize: '0.75rem', fontWeight: 'bold', padding: '0.25rem 0.75rem', borderRadius: '1rem' }}>
+                                MAIS POPULAR
+                            </div>
+                            <div style={{ marginBottom: '1rem' }}>
+                                <span style={{ background: 'var(--primary)', color: 'white', padding: '0.25rem 0.75rem', borderRadius: '1rem', fontSize: '0.8rem', fontWeight: 'bold', textTransform: 'uppercase' }}>Anual</span>
+                            </div>
+                            <h3 style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>R$ 50 <span style={{ fontSize: '1rem', color: 'var(--text-muted)', fontWeight: 'normal' }}>/ano</span></h3>
+                            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Equivale a R$ 4,16/mês.</p>
+
+                            <ul style={{ listStyle: 'none', padding: 0, margin: '1.5rem 0', flex: 1 }}>
+                                <li style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem', fontSize: '0.9rem' }}>
+                                    <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>✓</span> <b>Currículos Ilimitados</b>
+                                </li>
+                                <li style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem', fontSize: '0.9rem' }}>
+                                    <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>✓</span> Acesso a novos modelos
+                                </li>
+                                <li style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem', fontSize: '0.9rem' }}>
+                                    <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>✓</span> Suporte Prioritário
+                                </li>
+                            </ul>
+
+                            <Link to="/editor" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', background: 'var(--gradient-main)', border: 'none' }}>
+                                Assinar Agora
+                            </Link>
+                        </div>
+
+                        {/* Lifetime */}
+                        <div className="feature-card" style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
+                            <div style={{ marginBottom: '1rem' }}>
+                                <span style={{ background: '#eee', color: '#555', padding: '0.25rem 0.75rem', borderRadius: '1rem', fontSize: '0.8rem', fontWeight: 'bold', textTransform: 'uppercase' }}>Vitalício</span>
+                            </div>
+                            <h3 style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>R$ 150 <span style={{ fontSize: '1rem', color: 'var(--text-muted)', fontWeight: 'normal' }}>/único</span></h3>
+                            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Pague uma vez, use para sempre.</p>
+
+                            <ul style={{ listStyle: 'none', padding: 0, margin: '1.5rem 0', flex: 1 }}>
+                                <li style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem', fontSize: '0.9rem' }}>
+                                    <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>✓</span> Tudo do plano Pro
+                                </li>
+                                <li style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem', fontSize: '0.9rem' }}>
+                                    <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>✓</span> Sem mensalidades
+                                </li>
+                                <li style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem', fontSize: '0.9rem' }}>
+                                    <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>✓</span> Acesso Vitalício
+                                </li>
+                            </ul>
+
+                            <Link to="/editor" className="btn btn-secondary" style={{ width: '100%', justifyContent: 'center' }}>
+                                Comprar Acesso
+                            </Link>
+                        </div>
+
+                    </div>
+                </section>
             </div>
         </div>
     )

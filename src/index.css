@@ -5,4 +5,12 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Keep our custom resets if needed, but Tailwind handles most */
+@layer components {
+    .btn {
+        @apply inline-flex items-center justify-center px-4 py-2 rounded-lg font-bold text-sm transition-colors cursor-pointer;
+    }
+
+    .btn-primary {
+        @apply bg-[var(--primary)] text-white hover:bg-orange-600 shadow-sm shadow-orange-200;
+    }
+}

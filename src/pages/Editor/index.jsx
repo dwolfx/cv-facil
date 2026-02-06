@@ -84,11 +84,14 @@ const initialResumeState = {
 }
 
 import Sidebar from '../../components/Sidebar'
+import UserDropdown from '../../components/UserDropdown'
+import PlanWidget from '../../components/PlanWidget'
 
 const Editor = () => {
     const [resumeData, setResumeData] = useState(initialResumeState)
     const [activeSection, setActiveSection] = useState('personal')
     const [zoom, setZoom] = useState(100)
+    const [activeMobileTab, setActiveMobileTab] = useState('edit') // 'edit' | 'preview'
 
     // Socials visibility toggle state
     const [enabledSocials, setEnabledSocials] = useState({
@@ -274,44 +277,54 @@ const Editor = () => {
     }
 
     return (
-        <div className="bg-[#f8f9fa] dark:bg-slate-900 font-sans text-slate-900 dark:text-slate-100 h-screen flex flex-row overflow-hidden">
+        <div className="bg-[#f8f9fa] dark:bg-slate-900 font-sans text-slate-900 dark:text-slate-100 h-screen flex flex-row overflow-hidden pb-16 md:pb-0">
             {/* Shared Sidebar */}
             <Sidebar />
 
             <div className="flex-1 flex flex-col h-full overflow-hidden">
-                <header className="flex items-center justify-between bg-white dark:bg-slate-900 px-6 h-16 border-b border-slate-200 dark:border-slate-800 shrink-0 z-10 relative">
-                    <div className="flex flex-col">
-                        <div className="flex items-center gap-2">
-                            <FileText size={16} className="text-blue-600" />
-                            <h1 className="text-sm font-bold text-slate-800 dark:text-white leading-tight">Novo currículo</h1>
+                <header className="flex items-center justify-between bg-white dark:bg-slate-900 px-4 md:px-6 h-16 border-b border-slate-200 dark:border-slate-800 shrink-0 z-10 relative">
+                    <div className="flex flex-col justify-center">
+                        <h1 className="text-lg md:text-xl font-bold text-slate-800 dark:text-white leading-none">Editor de Currículo</h1>
+                        <p className="text-[10px] md:text-xs text-slate-500 hidden md:block">Edite as informações e acompanhe o resultado em tempo real.</p>
+
+                        {/* Mobile Tabs Switcher */}
+                        <div className="flex md:hidden bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg mt-1 w-fit">
+                            <button
+                                onClick={() => setActiveMobileTab('edit')}
+                                className={`px-3 py-1 text-[10px] font-bold rounded-md transition-all ${activeMobileTab === 'edit' ? 'bg-white shadow-sm text-[var(--primary)]' : 'text-slate-500'}`}
+                            >
+                                Editar
+                            </button>
+                            <button
+                                onClick={() => setActiveMobileTab('preview')}
+                                className={`px-3 py-1 text-[10px] font-bold rounded-md transition-all ${activeMobileTab === 'preview' ? 'bg-white shadow-sm text-[var(--primary)]' : 'text-slate-500'}`}
+                            >
+                                Visualizar
+                            </button>
                         </div>
-                        <span className="text-[10px] text-slate-400 pl-6">Rascunho criado agora</span>
                     </div>
 
-                    <div className="flex items-center gap-4">
-                        <button className="flex h-9 items-center justify-center rounded-md px-4 bg-[#0ea5e9] text-white text-xs font-bold transition-all hover:bg-[#0284c7] shadow-sm gap-2">
-                            <Download size={14} /> <span>Exportar PDF</span>
+                    <div className="flex items-center gap-2 md:gap-4">
+                        <button className="flex items-center gap-2 bg-[var(--primary)] text-white px-2 md:px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-orange-600 transition-colors shadow-sm shadow-orange-200">
+                            <Download size={14} /> <span className="hidden md:inline">Exportar PDF</span><span className="md:hidden">PDF</span>
                         </button>
-                        <div className="w-px h-8 bg-slate-200 mx-2"></div>
-                        <div className="flex items-center gap-3 cursor-pointer hover:bg-slate-50 p-1.5 rounded-lg transition-colors">
-                            <div className="flex flex-col items-end">
-                                <span className="text-xs font-bold text-slate-700">Ricardo Silva</span>
-                                <span className="text-[10px] text-slate-400">Plano Gratuito</span>
-                            </div>
-                            <div className="size-9 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold text-xs border border-orange-200">
-                                RS
-                            </div>
-                            <ChevronDown size={14} className="text-slate-400" />
+                        <div className="w-px h-8 bg-slate-200 mx-2 hidden md:block"></div>
+
+                        <div className="hidden md:block">
+                            <PlanWidget current={1} max={2} />
                         </div>
+                        <div className="w-px h-8 bg-slate-200 mx-2 hidden md:block"></div>
+
+                        <UserDropdown />
                     </div>
                 </header>
 
                 <main className="flex flex-1 overflow-hidden relative">
-                    <aside className="w-[380px] bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col h-full z-10 shrink-0">
+                    <aside className={`w-full md:w-[380px] bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col h-full z-10 shrink-0 ${activeMobileTab === 'edit' ? 'flex' : 'hidden md:flex'}`}>
                         <div className="flex-1 overflow-y-auto no-scrollbar p-0">
                             <div className="p-6 pb-4">
                                 <h2 className="text-base font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                                    <Layout size={18} className="text-blue-600" />
+                                    <Layout size={18} className="text-[var(--primary)]" />
                                     Conteúdo do Currículo
                                 </h2>
                                 <div className="mt-6 mb-2">
@@ -332,9 +345,9 @@ const Editor = () => {
                             <div className="px-6 pb-6 space-y-3">
                                 {/* Personal Info */}
                                 <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
-                                    <button onClick={() => toggleSection('personal')} className="flex w-full items-center justify-between p-4 hover:bg-slate-50 transition-colors text-left bg-blue-50/30">
+                                    <button onClick={() => toggleSection('personal')} className="flex w-full items-center justify-between p-4 hover:bg-slate-50 transition-colors text-left bg-orange-50/30">
                                         <div className="flex items-center gap-3">
-                                            <div className="bg-blue-100 p-1.5 rounded-md text-blue-600"><User size={16} /></div>
+                                            <div className="bg-orange-100 p-1.5 rounded-md text-[var(--primary)]"><User size={16} /></div>
                                             <span className="font-bold text-sm text-slate-800">Dados Pessoais</span>
                                         </div>
                                         <ChevronDown size={16} className={`text-slate-400 transition-transform ${activeSection === 'personal' ? 'rotate-180' : ''}`} />
@@ -371,7 +384,7 @@ const Editor = () => {
                                                                 <button onClick={() => removeLocation(i)} className="text-slate-400 hover:text-red-500"><Trash2 size={16} /></button>
                                                             </div>
                                                         ))}
-                                                        <button onClick={addLocation} className="text-[10px] font-bold text-blue-500 hover:underline flex items-center gap-1 mt-1">
+                                                        <button onClick={addLocation} className="text-[10px] font-bold text-[var(--primary)] hover:underline flex items-center gap-1 mt-1">
                                                             <PlusCircle size={12} /> Adicionar Local
                                                         </button>
                                                     </div>
@@ -379,28 +392,28 @@ const Editor = () => {
                                                 <div className="pt-2 space-y-3 border-t border-slate-50 mt-2">
                                                     <div className="flex flex-col gap-3">
                                                         <label className="flex items-center gap-2 cursor-pointer group">
-                                                            <input type="checkbox" className="rounded text-blue-500 focus:ring-blue-500 border-slate-300 size-3.5" checked={enabledSocials.linkedin} onChange={() => toggleSocial('linkedin')} />
-                                                            <span className="text-[11px] font-bold text-slate-500 uppercase group-hover:text-blue-600">LinkedIn</span>
+                                                            <input type="checkbox" className="rounded text-[var(--primary)] focus:ring-[var(--primary)] border-slate-300 size-3.5" checked={enabledSocials.linkedin} onChange={() => toggleSocial('linkedin')} />
+                                                            <span className="text-[11px] font-bold text-slate-500 uppercase group-hover:text-[var(--primary)]">LinkedIn</span>
                                                         </label>
                                                         {enabledSocials.linkedin && (
                                                             <input className="input-field-modern" placeholder="URL do LinkedIn" value={resumeData.personalInfo.linkedin} onChange={(e) => handleChange('personalInfo', 'linkedin', e.target.value)} />
                                                         )}
                                                         <label className="flex items-center gap-2 cursor-pointer group">
-                                                            <input type="checkbox" className="rounded text-blue-500 focus:ring-blue-500 border-slate-300 size-3.5" checked={enabledSocials.portfolio} onChange={() => toggleSocial('portfolio')} />
-                                                            <span className="text-[11px] font-bold text-slate-500 uppercase group-hover:text-blue-600">Portfólio</span>
+                                                            <input type="checkbox" className="rounded text-[var(--primary)] focus:ring-[var(--primary)] border-slate-300 size-3.5" checked={enabledSocials.portfolio} onChange={() => toggleSocial('portfolio')} />
+                                                            <span className="text-[11px] font-bold text-slate-500 uppercase group-hover:text-[var(--primary)]">Portfólio</span>
                                                         </label>
                                                         {enabledSocials.portfolio && (
                                                             <input className="input-field-modern" placeholder="URL do Portfólio" value={resumeData.personalInfo.portfolio} onChange={(e) => handleChange('personalInfo', 'portfolio', e.target.value)} />
                                                         )}
                                                         <label className="flex items-center gap-2 cursor-pointer group">
-                                                            <input type="checkbox" className="rounded text-blue-500 focus:ring-blue-500 border-slate-300 size-3.5" checked={enabledSocials.instagram} onChange={() => toggleSocial('instagram')} />
+                                                            <input type="checkbox" className="rounded text-[var(--primary)] focus:ring-[var(--primary)] border-slate-300 size-3.5" checked={enabledSocials.instagram} onChange={() => toggleSocial('instagram')} />
                                                             <span className="text-[11px] font-bold text-slate-500 uppercase group-hover:text-pink-600">Instagram</span>
                                                         </label>
                                                         {enabledSocials.instagram && (
                                                             <input className="input-field-modern" placeholder="@usuario" value={resumeData.personalInfo.instagram} onChange={(e) => handleChange('personalInfo', 'instagram', e.target.value)} />
                                                         )}
                                                         <label className="flex items-center gap-2 cursor-pointer group">
-                                                            <input type="checkbox" className="rounded text-blue-500 focus:ring-blue-500 border-slate-300 size-3.5" checked={enabledSocials.youtube} onChange={() => toggleSocial('youtube')} />
+                                                            <input type="checkbox" className="rounded text-[var(--primary)] focus:ring-[var(--primary)] border-slate-300 size-3.5" checked={enabledSocials.youtube} onChange={() => toggleSocial('youtube')} />
                                                             <span className="text-[11px] font-bold text-slate-500 uppercase group-hover:text-red-600">YouTube</span>
                                                         </label>
                                                         {enabledSocials.youtube && (
@@ -413,9 +426,9 @@ const Editor = () => {
                                     )}
                                 </div>
                                 <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
-                                    <button onClick={() => toggleSection('summary')} className="flex w-full items-center justify-between p-4 hover:bg-slate-50 transition-colors text-left bg-blue-50/30">
+                                    <button onClick={() => toggleSection('summary')} className="flex w-full items-center justify-between p-4 hover:bg-slate-50 transition-colors text-left bg-orange-50/30">
                                         <div className="flex items-center gap-3">
-                                            <div className="bg-blue-100 p-1.5 rounded-md text-blue-600"><FileText size={16} /></div>
+                                            <div className="bg-orange-100 p-1.5 rounded-md text-[var(--primary)]"><FileText size={16} /></div>
                                             <span className="font-bold text-sm text-slate-800">Sobre mim</span>
                                         </div>
                                         <ChevronDown size={16} className={`text-slate-400 transition-transform ${activeSection === 'summary' ? 'rotate-180' : ''}`} />
@@ -431,9 +444,9 @@ const Editor = () => {
                                     )}
                                 </div>
                                 <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
-                                    <button onClick={() => toggleSection('experience')} className="flex w-full items-center justify-between p-4 hover:bg-slate-50 transition-colors text-left bg-blue-50/30">
+                                    <button onClick={() => toggleSection('experience')} className="flex w-full items-center justify-between p-4 hover:bg-slate-50 transition-colors text-left bg-orange-50/30">
                                         <div className="flex items-center gap-3">
-                                            <div className="bg-blue-100 p-1.5 rounded-md text-blue-600"><Briefcase size={16} /></div>
+                                            <div className="bg-orange-100 p-1.5 rounded-md text-[var(--primary)]"><Briefcase size={16} /></div>
                                             <span className="font-bold text-sm text-slate-800">Experiência Profissional</span>
                                         </div>
                                         <ChevronDown size={16} className={`text-slate-400 transition-transform ${activeSection === 'experience' ? 'rotate-180' : ''}`} />
@@ -441,7 +454,7 @@ const Editor = () => {
                                     {activeSection === 'experience' && (
                                         <div className="p-4 pt-4 space-y-4 border-t border-slate-100">
                                             {resumeData.experience.map((exp, i) => (
-                                                <div key={exp.id || i} className="p-4 bg-white border border-slate-200 rounded-lg relative group shadow-sm transition-all hover:border-blue-300">
+                                                <div key={exp.id || i} className="p-4 bg-white border border-slate-200 rounded-lg relative group shadow-sm transition-all hover:border-orange-300">
                                                     <button onClick={() => removeItem('experience', i)} className="absolute top-3 right-3 text-slate-300 hover:text-red-500 transition-colors"><Trash2 size={16} /></button>
                                                     <div className="space-y-3">
                                                         <div>
@@ -469,7 +482,7 @@ const Editor = () => {
                                                             <label className="flex items-center gap-2 cursor-pointer">
                                                                 <input
                                                                     type="checkbox"
-                                                                    className="rounded text-blue-500 focus:ring-blue-500 border-slate-300 size-3.5"
+                                                                    className="rounded text-[var(--primary)] focus:ring-[var(--primary)] border-slate-300 size-3.5"
                                                                     checked={exp.isCurrent || false}
                                                                     onChange={(e) => handleArrayChange('experience', i, 'isCurrent', e.target.checked)}
                                                                 />
@@ -500,9 +513,9 @@ const Editor = () => {
                                     )}
                                 </div>
                                 <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
-                                    <button onClick={() => toggleSection('education')} className="flex w-full items-center justify-between p-4 hover:bg-slate-50 transition-colors text-left bg-blue-50/30">
+                                    <button onClick={() => toggleSection('education')} className="flex w-full items-center justify-between p-4 hover:bg-slate-50 transition-colors text-left bg-orange-50/30">
                                         <div className="flex items-center gap-3">
-                                            <div className="bg-blue-100 p-1.5 rounded-md text-blue-600"><GraduationCap size={16} /></div>
+                                            <div className="bg-orange-100 p-1.5 rounded-md text-[var(--primary)]"><GraduationCap size={16} /></div>
                                             <span className="font-bold text-sm text-slate-800">Escolaridade</span>
                                         </div>
                                         <ChevronDown size={16} className={`text-slate-400 transition-transform ${activeSection === 'education' ? 'rotate-180' : ''}`} />
@@ -538,7 +551,7 @@ const Editor = () => {
                                                             <label className="flex items-center gap-2 cursor-pointer">
                                                                 <input
                                                                     type="checkbox"
-                                                                    className="rounded text-blue-500 focus:ring-blue-500 border-slate-300 size-3.5"
+                                                                    className="rounded text-[var(--primary)] focus:ring-[var(--primary)] border-slate-300 size-3.5"
                                                                     checked={edu.isCurrent || false}
                                                                     onChange={(e) => handleArrayChange('education', i, 'isCurrent', e.target.checked)}
                                                                 />
@@ -559,9 +572,9 @@ const Editor = () => {
                                     )}
                                 </div>
                                 <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
-                                    <button onClick={() => toggleSection('skills')} className="flex w-full items-center justify-between p-4 hover:bg-slate-50 transition-colors text-left bg-blue-50/30">
+                                    <button onClick={() => toggleSection('skills')} className="flex w-full items-center justify-between p-4 hover:bg-slate-50 transition-colors text-left bg-orange-50/30">
                                         <div className="flex items-center gap-3">
-                                            <div className="bg-blue-100 p-1.5 rounded-md text-blue-600"><Wrench size={16} /></div>
+                                            <div className="bg-orange-100 p-1.5 rounded-md text-[var(--primary)]"><Wrench size={16} /></div>
                                             <span className="font-bold text-sm text-slate-800">Habilidades</span>
                                         </div>
                                         <ChevronDown size={16} className={`text-slate-400 transition-transform ${activeSection === 'skills' ? 'rotate-180' : ''}`} />
@@ -579,7 +592,7 @@ const Editor = () => {
                                                     </div>
                                                 ))}
                                             </div>
-                                            <button onClick={() => setResumeData(prev => ({ ...prev, skills: [...prev.skills, 'Nova Habilidade'] }))} className="text-xs font-bold text-blue-500 hover:text-blue-600 flex items-center gap-1 mt-2">
+                                            <button onClick={() => setResumeData(prev => ({ ...prev, skills: [...prev.skills, 'Nova Habilidade'] }))} className="text-xs font-bold text-[var(--primary)] hover:text-orange-600 flex items-center gap-1 mt-2">
                                                 + Adicionar Habilidade
                                             </button>
                                         </div>
@@ -591,13 +604,13 @@ const Editor = () => {
                             </div>
                         </div>
                         <div className="p-6 pt-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 z-20 shadow-[0_-5px_15px_-5px_rgba(0,0,0,0.05)]">
-                            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-800 shadow-sm relative overflow-hidden">
-                                <span className="text-[10px] font-bold text-blue-900 dark:text-blue-100 uppercase block mb-1">Plano Gratuito</span>
-                                <div className="w-full h-1.5 bg-blue-200 dark:bg-blue-800 rounded-full overflow-hidden mb-2">
-                                    <div className="h-full bg-blue-600 rounded-full" style={{ width: '50%' }}></div>
+                            <div className="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-xl border border-orange-100 dark:border-orange-800 shadow-sm relative overflow-hidden">
+                                <span className="text-[10px] font-bold text-[var(--primary)] dark:text-orange-100 uppercase block mb-1">Plano Gratuito</span>
+                                <div className="w-full h-1.5 bg-orange-200 dark:bg-orange-800 rounded-full overflow-hidden mb-2">
+                                    <div className="h-full bg-[var(--primary)] rounded-full" style={{ width: '50%' }}></div>
                                 </div>
                                 <p className="text-[10px] text-slate-500 dark:text-slate-400 mb-2 font-medium">1 de 2 currículos criados</p>
-                                <a href="#" className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1">
+                                <a href="/upgrade" className="text-xs font-bold text-[var(--primary)] hover:underline flex items-center gap-1">
                                     Fazer upgrade <span className="text-lg leading-none">→</span>
                                 </a>
                             </div>
@@ -605,13 +618,13 @@ const Editor = () => {
                     </aside>
 
                     {/* Preview Area */}
-                    <section className="flex-1 bg-[#525659] h-full overflow-hidden relative flex flex-col items-center justify-start pt-10 pb-20">
-                        <div className="fixed bottom-8 left-1/2 transform translate-x-[100px] z-50 bg-[#1e293b] text-white px-2 py-1.5 rounded-full flex items-center gap-3 shadow-2xl border border-slate-600">
+                    <section className={`flex-1 bg-[#525659] h-full overflow-hidden relative flex-col items-center justify-start pt-6 md:pt-10 pb-20 ${activeMobileTab === 'preview' ? 'flex' : 'hidden md:flex'}`}>
+                        <div className="fixed bottom-24 md:bottom-8 left-1/2 transform -translate-x-1/2 md:translate-x-[100px] z-50 bg-[#1e293b] text-white px-2 py-1.5 rounded-full flex items-center gap-3 shadow-2xl border border-slate-600">
                             <button onClick={() => setZoom(prev => Math.max(50, prev - 10))} className="hover:bg-slate-700 p-1 rounded-full text-slate-300 hover:text-white"><Minus size={14} /></button>
                             <span className="text-xs font-bold min-w-[40px] text-center">{zoom}%</span>
                             <button onClick={() => setZoom(prev => Math.min(150, prev + 10))} className="hover:bg-slate-700 p-1 rounded-full text-slate-300 hover:text-white"><Plus size={14} /></button>
                         </div>
-                        <div className="overflow-auto w-full h-full flex items-start justify-center p-8 pb-32 no-scrollbar">
+                        <div className="overflow-auto w-full h-full flex items-start justify-center p-4 md:p-8 pb-32 no-scrollbar">
                             <div
                                 className="bg-white shadow-2xl origin-top transition-transform duration-200 ease-out flex-shrink-0"
                                 style={{
