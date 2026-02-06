@@ -47,11 +47,31 @@ const Editor = () => {
     const resumeId = searchParams.get('id')
 
     const [resumeData, setResumeData] = useState(initialResumeState)
+    const [lastSavedData, setLastSavedData] = useState(initialResumeState) // Track original/saved state
+
+    // Check for changes
+    // Simple deep comparison using JSON stringify (sufficient for this data size)
+    const isDirty = React.useMemo(() => {
+        return JSON.stringify(resumeData) !== JSON.stringify(lastSavedData)
+    }, [resumeData, lastSavedData])
+
     const [activeSection, setActiveSection] = useState('personal')
     const [zoom, setZoom] = useState(100)
     const [activeMobileTab, setActiveMobileTab] = useState('edit') // 'edit' | 'preview'
     const [submitting, setSubmitting] = useState(false)
     const [loading, setLoading] = useState(!!resumeId)
+
+    // Warn on tab close if dirty
+    useEffect(() => {
+        const handleBeforeUnload = (e) => {
+            if (isDirty) {
+                e.preventDefault()
+                e.returnValue = '' // Chrome requires returnValue to be set
+            }
+        }
+        window.addEventListener('beforeunload', handleBeforeUnload)
+        return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+    }, [isDirty])
 
     // Fetch Resume if ID is present
     useEffect(() => {
@@ -74,14 +94,16 @@ const Editor = () => {
             if (error) throw error
             if (data && data.content) {
                 // Merge with initial state to ensure all fields exist (legacy compatibility)
-                setResumeData(prev => ({
+                const mergedContent = {
                     ...initialResumeState,
                     ...data.content,
                     personalInfo: {
                         ...initialResumeState.personalInfo,
                         ...(data.content.personalInfo || {})
                     }
-                }))
+                }
+                setResumeData(mergedContent)
+                setLastSavedData(mergedContent) // Sync saved state
             }
         } catch (error) {
             console.error('Error fetching resume:', error)
@@ -424,8 +446,8 @@ const Editor = () => {
 
                     <button
                         onClick={handleSave}
-                        disabled={submitting || loading}
-                        className="flex items-center gap-2 bg-emerald-600 text-white px-2 md:px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-emerald-700 transition-colors shadow-sm shadow-emerald-200 disabled:opacity-70 disabled:cursor-not-allowed"
+                        disabled={submitting || loading || !isDirty} // Disable if no changes
+                        className="flex items-center gap-2 bg-emerald-600 text-white px-2 md:px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-emerald-700 transition-colors shadow-sm shadow-emerald-200 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {submitting ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
                         <span className="hidden md:inline">Salvar</span>

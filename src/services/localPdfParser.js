@@ -34,11 +34,32 @@ const parsePdf = async (file) => {
 
     let fullText = '';
 
-    // Extract text from all pages
     for (let i = 1; i <= pdf.numPages; i++) {
         const page = await pdf.getPage(i);
         const textContent = await page.getTextContent();
-        const pageText = textContent.items.map(item => item.str).join(' ');
+
+        let lastY = null;
+        let pageText = '';
+
+        // Sort items by Y (descending often for PDF) then X? 
+        // pdf.js usually returns reading order, but not guaranteed.
+        // For simplicity, we rely on the returned order but check Y for line breaks.
+
+        for (const item of textContent.items) {
+            // item.transform is [scaleX, skewY, skewX, scaleY, tx, ty]
+            const currentY = item.transform[5];
+
+            if (lastY !== null && Math.abs(currentY - lastY) > 5) {
+                pageText += '\n';
+            } else if (pageText.length > 0 && !pageText.endsWith('\n')) {
+                // Add space between words on same line
+                pageText += ' ';
+            }
+
+            pageText += item.str;
+            lastY = currentY;
+        }
+
         fullText += pageText + '\n';
     }
 
@@ -58,8 +79,8 @@ const parseTxt = async (file) => {
 
 const extractDataFromText = (text) => {
     // Normalize text (preserve lines for some parsing, but clean excessive spaces)
-    // We keep lines to help with item detection
     const normalizedText = text.replace(/\r\n/g, '\n').replace(/\t/g, ' ');
+    const lines = normalizedText.split('\n').filter(line => line.trim().length > 0);
     const cleanedGlobal = normalizedText.replace(/\s+/g, ' ').trim();
 
     const sections = {
@@ -77,40 +98,45 @@ const extractDataFromText = (text) => {
     const phoneMatch = cleanedGlobal.match(/(\(?\d{2}\)?\s?\d{4,5}-?\d{4})/);
     if (phoneMatch) sections.personalInfo.phone = phoneMatch[0];
 
-    // LinkedIn
     const linkedinMatch = cleanedGlobal.match(/linkedin\.com\/in\/[\w-]+/i);
     if (linkedinMatch) sections.personalInfo.linkedin = `https://www.${linkedinMatch[0]}`;
 
-    // --- 2. Section Extraction (Heuristic Slicing) ---
-    // We'll search for indices of known Headers
+    // --- 2. Improved Name Extraction ---
+    // Heuristic: The Name is usually the very first line of the document, 
+    // especially if it doesn't look like a header or contact info.
+    if (lines.length > 0) {
+        const firstLine = lines[0].trim();
+        // Avoid if it looks like "Page 1" or "Curriculum"
+        if (firstLine.length > 3 && !/página|page|currículo|cv/i.test(firstLine)) {
+            sections.personalInfo.fullName = firstLine;
+        }
+    }
 
-    // Map text to headers
+    // --- 3. Section Extraction (Strict Headers) ---
+    // We expect headers to be at the start of a line or surrounded by newlines
     const headers = {
-        contact: /INFORMAÇÃO DE CONTATO|CONTACT INFO/i,
-        summary: /OBJETIVO|OBJECTIVE|RESUMO|SUMMARY|SOBRE MIM|ABOUT/i,
-        experience: /EXPERIÊNCIA|EXPERIENCE|WORK HISTORY|HISTÓRICO PROFISSIONAL/i,
-        education: /EDUCAÇÃO|EDUCATION|FORMAÇÃO|ACADEMIC/i,
-        skills: /HABILIDADES|SKILLS|COMPETÊNCIAS/i,
-        languages: /IDIOMAS|LANGUAGES/i
+        contact: /(?:\n|^)\s*(INFORMAÇÃO DE CONTATO|CONTACT INFO|CONTATO)/i,
+        summary: /(?:\n|^)\s*(OBJETIVO|OBJECTIVE|RESUMO|SUMMARY|SOBRE MIM|ABOUT|PERFIL)/i,
+        experience: /(?:\n|^)\s*(EXPERIÊNCIA|EXPERIENCE|WORK HISTORY|HISTÓRICO PROFISSIONAL)/i,
+        education: /(?:\n|^)\s*(EDUCAÇÃO|EDUCATION|FORMAÇÃO|ACADEMIC|HISTÓRICO ACADÊMICO)/i,
+        skills: /(?:\n|^)\s*(HABILIDADES|SKILLS|COMPETÊNCIAS|TECHNICAL SKILLS)/i,
+        languages: /(?:\n|^)\s*(IDIOMAS|LANGUAGES)/i
     };
 
-    // Helper to find start index of a section
-    const findSectionStart = (regex) => {
+    const findSectionIndex = (regex) => {
         const match = normalizedText.match(regex);
         return match ? match.index : -1;
     };
 
-    // Sort distinct headers by position to know where one ends and next begins
     const foundHeaders = [
-        { key: 'contact', index: findSectionStart(headers.contact) },
-        { key: 'summary', index: findSectionStart(headers.summary) },
-        { key: 'experience', index: findSectionStart(headers.experience) },
-        { key: 'education', index: findSectionStart(headers.education) },
-        { key: 'skills', index: findSectionStart(headers.skills) },
-        { key: 'languages', index: findSectionStart(headers.languages) }
+        { key: 'contact', index: findSectionIndex(headers.contact) },
+        { key: 'summary', index: findSectionIndex(headers.summary) },
+        { key: 'experience', index: findSectionIndex(headers.experience) },
+        { key: 'education', index: findSectionIndex(headers.education) },
+        { key: 'skills', index: findSectionIndex(headers.skills) },
+        { key: 'languages', index: findSectionIndex(headers.languages) }
     ].filter(h => h.index !== -1).sort((a, b) => a.index - b.index);
 
-    // Extract content between headers
     const getSectionContent = (key) => {
         const headerObj = foundHeaders.find(h => h.key === key);
         if (!headerObj) return '';
@@ -119,98 +145,99 @@ const extractDataFromText = (text) => {
         const nextHeader = foundHeaders[nextHeaderIndex + 1];
 
         let content = '';
+        // If there is a next header, cut until there.
+        // If not, maybe we should stop at the end of text?
+        // Check if there's any other header (not in our list) that might signal end? 
+        // For now, assume these are the main ones.
+
         if (nextHeader) {
             content = normalizedText.substring(headerObj.index, nextHeader.index);
         } else {
             content = normalizedText.substring(headerObj.index);
         }
 
-        // Remove the header title itself from content
+        // Remove the header title line itself
+        // We split by newline and drop the first line which contains the match
+        const sectionLines = content.split('\n');
+        if (sectionLines.length > 0) {
+            // The first line is likely the header title, remove it
+            // BUT, verify if the match actually occupied the whole line or just start
+            // Usually it's the whole line for these headers.
+            return sectionLines.slice(1).join('\n').trim();
+        }
         return content.replace(headers[key], '').trim();
     };
 
-    // --- 3. Process Specific Sections ---
-
-    // Name (fallback if not in contact info, take top of file)
-    if (!sections.personalInfo.fullName) {
-        // Assume name is first visual line or extracted from "Name" keywords if existing
-        // For simplicity: Top 3 words
-        const firstLine = normalizedText.split('\n')[0].trim();
-        if (firstLine.length < 50) sections.personalInfo.fullName = firstLine;
-    }
-
-    // Summary / Objetivo
+    // Populate Sections
     const summaryRaw = getSectionContent('summary');
-    if (summaryRaw) {
-        sections.personalInfo.summary = summaryRaw.replace(/\s+/g, ' ').trim();
-    }
+    if (summaryRaw) sections.personalInfo.summary = summaryRaw.replace(/\s+/g, ' ').trim();
 
-    // Experience (Smarter Split by Date)
     const experienceRaw = getSectionContent('experience');
-    if (experienceRaw) {
-        sections.experience = parseExperienceItems(experienceRaw);
-    }
+    if (experienceRaw) sections.experience = parseExperienceItems(experienceRaw);
 
-    // Education
     const educationRaw = getSectionContent('education');
-    if (educationRaw) {
-        sections.education = parseEducationItems(educationRaw);
-    }
+    if (educationRaw) sections.education = parseEducationItems(educationRaw);
 
-    // Skills
     const skillsRaw = getSectionContent('skills');
     if (skillsRaw) {
-        // Split by comma, bullet, or newline
+        // Split by bullets, commas or newlines
+        // Filter out junk
         const list = skillsRaw.split(/[,•\n]/)
             .map(s => s.trim())
             .filter(s => s.length > 2 && !/HABILIDADES|SKILLS/i.test(s));
-        sections.skills = list.slice(0, 15);
+
+        // Deduplicate and limit
+        sections.skills = [...new Set(list)].slice(0, 15);
     }
 
-    // Languages
+    // Languages - Try to preserve level if on same line e.g. "Inglês Avançado" or "Inglês - Avançado"
     const languagesRaw = getSectionContent('languages');
     if (languagesRaw) {
-        // Try to pair strings e.g. "Inglês Avançado" or split lines
-        const lines = languagesRaw.split('\n').filter(l => l.trim().length > 2);
-        sections.languages = lines.map((line, i) => {
-            return { id: i, name: line.trim(), level: '' }; // Naive
-        }).slice(0, 5);
+        const langLines = languagesRaw.split('\n').filter(l => l.trim().length > 3);
+        sections.languages = langLines.map((line, i) => {
+            // Naive split: "Language - Level" or Just "Language Level"
+            let name = line;
+            let level = '';
+
+            if (line.includes('-')) {
+                const parts = line.split('-');
+                name = parts[0].trim();
+                level = parts[1].trim();
+            } else if (line.includes(':')) {
+                const parts = line.split(':');
+                name = parts[0].trim();
+                level = parts[1].trim();
+            }
+            return { id: i, name, level };
+        }).slice(0, 6);
     }
 
-    // Nationality from raw text if possible
     const nationalityMatch = cleanedGlobal.match(/(Brasileiro|Brasileira|Brazilian)/i);
     if (nationalityMatch) sections.personalInfo.nationality = nationalityMatch[0];
 
     return sections;
 };
 
-// Helper: Parse Items based on Date Patterns (Month Year - Month Year)
+// Start of Logic: Experience Parsing
 const parseExperienceItems = (text) => {
-    // Regex for date ranges like: "Jan 2020 - Dec 2021", "01/2020 - Present", "Ago 2024 - Jan 2026"
-    // We look for patterns that likely start a new block.
-    // This splits the text block by looking ahead for a date pattern.
-
     const items = [];
-
-    // Split by lines
-    const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+    const lines = text.split('\n').filter(l => l.trim());
 
     let currentItem = null;
 
-    // Regex strategies for detecting a "Header" line of an experience item
-    // Strategy 1: Look for lines containing a Date Range
+    // Improved Regex to match "Mon Year - Mon Year" or "Mon Year"
+    // Matches start of line or generally isolated dates
     const dateRangeRegex = /((?:jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez|january|february|march|april|may|june|july|august|september|october|november|december|\d{2})\/?\s?\d{2,4}\s?[-–to]\s?(?:jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez|january|february|march|april|may|june|july|august|september|october|november|december|\d{2}|present|presente|atual)\/?\s?\d{0,4})/i;
 
     lines.forEach(line => {
-        const hasDate = dateRangeRegex.test(line);
+        const dateMatch = line.match(dateRangeRegex);
 
-        if (hasDate) {
-            // Push previous
+        if (dateMatch) {
+            // New Item Detected by Date
             if (currentItem) items.push(currentItem);
 
-            // Start new
             currentItem = {
-                company: '', // We'll try to extract, otherwise leave blank to edit
+                company: '',
                 position: '',
                 location: '',
                 startDate: '',
@@ -219,61 +246,83 @@ const parseExperienceItems = (text) => {
                 description: ''
             };
 
-            // Extract Date
-            const match = line.match(dateRangeRegex);
-            if (match) {
-                const dates = match[0].split(/[-–to]/);
-                currentItem.startDate = dates[0].trim();
-                currentItem.endDate = dates[1] ? dates[1].trim() : '';
-                if (/present|atual/i.test(currentItem.endDate)) currentItem.isCurrent = true;
+            // Parse Dates
+            const fullDateStr = dateMatch[0];
+            const dates = fullDateStr.split(/[-–to]/);
+            currentItem.startDate = dates[0].trim();
+            currentItem.endDate = dates[1] ? dates[1].trim() : '';
+            if (/present|atual/i.test(currentItem.endDate)) currentItem.isCurrent = true;
 
-                // Content *before* or *after* date in the same line might be Company/Role
-                const remaining = line.replace(match[0], '').trim();
-                if (remaining.length > 2) currentItem.company = remaining;
-                // Wait, your layout has Date on Left, Role/Company on Right. 
-                // PDF extraction might have "Ago 2021 - Jan 2026 Product Designer" on one line.
-                // Or "Product Designer" on next line.
+            // Handle Text on the Same Line as Date
+            // e.g. "Ago 2021 - Jan 2026 Product Designer"
+            // or "Company Name Ago 2021 - Jan 2026"
+
+            const remaining = line.replace(fullDateStr, '').trim();
+
+            if (remaining.length > 0) {
+                // Heuristic: Short text is likely Role/Company. Long text is Description.
+                if (remaining.length < 50) {
+                    // If we don't know if it's company or role, assume Role (Position) is often next to date
+                    // But in your PDF image, Company seems to be above? Or same line?
+                    // Let's assume Position.
+                    currentItem.position = remaining;
+                } else {
+                    // Too long, likely description
+                    currentItem.description += remaining + '\n';
+                }
             }
         } else {
-            // Append to current
+            // Line without Date
             if (currentItem) {
-                // Heuristic: If we don't have position/company yet, assume these lines are it
-                if (!currentItem.position && line.length < 50) currentItem.position = line;
-                else if (!currentItem.company && line.length < 50) currentItem.company = line;
-                else currentItem.description += line + '\n';
+                // If Item is fresh (no description yet), try to fill Position/Company from short lines
+                const isShort = line.length < 60;
+
+                if (isShort && !currentItem.description) {
+                    if (!currentItem.position) {
+                        currentItem.position = line;
+                    } else if (!currentItem.company) {
+                        currentItem.company = line;
+                    } else {
+                        // We have both, maybe Location?
+                        if (/Brazil|SP|MG|RJ|Remote|Remoto/i.test(line)) {
+                            currentItem.location = line;
+                        } else {
+                            // Otherwise, likely bullet point start
+                            currentItem.description += line + '\n';
+                        }
+                    }
+                } else {
+                    // Description
+                    currentItem.description += line + '\n';
+                }
+            } else {
+                // Text before any date found? Maybe a stray header or garbage.
+                // Ignore or create a dummy item if it's long enough
             }
         }
     });
 
     if (currentItem) items.push(currentItem);
 
-    // Fallback: If no dates found, return big block
-    if (items.length === 0 && text.length > 10) {
-        return [{
-            company: 'Experiência (Não foi possível separar automaticamente)',
-            position: 'Verificar PDF',
-            description: text
-        }];
+    // Fallback
+    if (items.length === 0 && text.length > 20) {
+        return [{ company: 'Experiência (Não separada)', position: '', description: text }];
     }
 
     return items;
 };
 
 const parseEducationItems = (text) => {
-    // Similar logic but simpler
     const items = [];
     const lines = text.split('\n').filter(l => l.trim());
     let currentItem = null;
-    // Simple heuristic: Every 3 lines is a new item? checking for dates?
-    // Let's look for dates again
-    const dateRegex = /\d{4}/; // Simple year check
+    const dateRegex = /\d{4}/;
 
     lines.forEach(line => {
-        if (dateRegex.test(line) && line.length < 40) { // Likely a meta line
+        if (dateRegex.test(line) && line.length < 40) {
             if (currentItem) items.push(currentItem);
             currentItem = { school: '', degree: '', startDate: '', endDate: '' };
 
-            // Extract years
             const years = line.match(/\d{4}/g);
             if (years) {
                 if (years.length >= 1) currentItem.startDate = years[0];
@@ -283,18 +332,18 @@ const parseEducationItems = (text) => {
             if (currentItem) {
                 if (!currentItem.degree) currentItem.degree = line;
                 else if (!currentItem.school) currentItem.school = line;
+            } else {
+                // Start first item if valid text
+                if (line.length > 3) {
+                    currentItem = { school: '', degree: line, startDate: '', endDate: '' };
+                }
             }
         }
     });
 
     if (currentItem) items.push(currentItem);
-
     if (items.length === 0 && text.length > 10) {
-        return [{
-            school: 'Instituição (Editar)',
-            degree: text.substring(0, 100),
-            startDate: ''
-        }];
+        return [{ school: 'Instituição (Editar)', degree: text.substring(0, 100), startDate: '' }];
     }
     return items;
 };
