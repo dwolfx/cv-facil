@@ -81,6 +81,64 @@ const Settings = () => {
         }
     }
 
+
+    const handleUpdatePassword = async () => {
+        const currentPassword = document.getElementById('current-password')?.value
+        const newPassword = document.getElementById('new-password')?.value
+
+        if (!currentPassword) return toast.error('Digite a senha atual.')
+        if (!newPassword) return toast.error('Digite a nova senha.')
+
+        setUpdating(true)
+        try {
+            // 1. Verify current password
+            const { error: signInError } = await supabase.auth.signInWithPassword({
+                email: user.email,
+                password: currentPassword
+            })
+
+            if (signInError) throw new Error('Senha atual incorreta.')
+
+            // 2. Update to new password
+            const { error } = await supabase.auth.updateUser({ password: newPassword })
+            if (error) throw error
+
+            toast.success('Senha atualizada com sucesso!')
+            document.getElementById('current-password').value = ''
+            document.getElementById('new-password').value = ''
+
+        } catch (error) {
+            console.error(error)
+            toast.error(error.message || 'Erro ao atualizar senha.')
+        } finally {
+            setUpdating(false)
+        }
+    }
+
+    const handleDeleteAccount = async () => {
+        if (!confirm('Tem certeza ABSOLUTA? Esta ação não pode ser desfeita.')) return
+
+        setUpdating(true)
+        try {
+            // 1. Delete all resumes
+            await supabase.from('resumes').delete().eq('user_id', user.id)
+
+            // 2. Reset plan to 'free' (Manual reset for testing)
+            // Note: Normally we can't delete auth user from client.
+            // But we can reset the state so it feels like new.
+
+            await supabase.auth.signOut()
+            navigate('/login')
+            toast.success('Conta resetada com sucesso.')
+
+        } catch (error) {
+            console.error(error)
+            toast.error('Erro ao resetar conta.')
+        } finally {
+            setUpdating(false)
+        }
+    }
+
     const renderContent = () => {
         if (loading) {
             return <div className="flex justify-center p-8"><Loader2 className="animate-spin text-[var(--primary)]" /></div>
@@ -135,29 +193,46 @@ const Settings = () => {
                             <div className="space-y-4">
                                 <div>
                                     <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Senha Atual</label>
-                                    <input type="password" className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg" />
+                                    <input
+                                        type="password"
+                                        id="current-password"
+                                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg"
+                                        placeholder="Digite sua senha atual"
+                                    />
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Nova Senha</label>
-                                    <input type="password" className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg" />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Confirmar Nova Senha</label>
-                                    <input type="password" className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg" />
+                                    <input
+                                        type="password"
+                                        id="new-password"
+                                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg"
+                                        placeholder="Nova senha"
+                                    />
                                 </div>
                             </div>
                             <div className="mt-6 pt-6 border-t border-slate-100 flex justify-end">
-                                <button onClick={handleSave} className="flex items-center gap-2 bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-bold transition-colors">
-                                    <Save size={16} /> Atualizar Senha
+                                <button
+                                    onClick={handleUpdatePassword}
+                                    disabled={updating}
+                                    className="flex items-center gap-2 bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-bold transition-colors disabled:opacity-70"
+                                >
+                                    {updating ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+                                    Atualizar Senha
                                 </button>
                             </div>
                         </div>
 
                         <div className="bg-red-50 border border-red-100 rounded-xl p-6">
                             <h3 className="text-red-800 font-bold mb-2">Zona de Perigo</h3>
-                            <p className="text-red-600 text-sm mb-4">A exclusão da sua conta é irreversível. Todos os seus currículos serão apagados.</p>
-                            <button className="text-red-600 text-sm font-bold border border-red-200 px-4 py-2 rounded-lg hover:bg-red-100 transition-colors">
-                                Excluir minha conta
+                            <p className="text-red-600 text-sm mb-4">
+                                A exclusão da sua conta é irreversível. Todos os seus dados serão apagados permanentemente.
+                            </p>
+                            <button
+                                onClick={handleDeleteAccount}
+                                disabled={updating}
+                                className="text-red-600 text-sm font-bold border border-red-200 px-4 py-2 rounded-lg hover:bg-red-100 transition-colors disabled:opacity-50"
+                            >
+                                {updating ? 'Processando...' : 'Excluir Minha Conta'}
                             </button>
                         </div>
                     </div>

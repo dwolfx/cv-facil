@@ -3,7 +3,13 @@ import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { Layout, FileText, UploadCloud, Settings, Hexagon } from 'lucide-react'
 
+import { useAuth } from '../contexts/AuthContext'
+
 const Sidebar = () => {
+    const { user } = useAuth()
+    const userName = user?.user_metadata?.full_name || 'User'
+    const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=random`
+
     const location = useLocation()
     const currentPath = location.pathname
 
@@ -41,7 +47,7 @@ const Sidebar = () => {
                         <span className="absolute left-14 bg-slate-800 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none">Configurações</span>
                     </Link>
                     <div className="size-8 rounded-full bg-slate-200 overflow-hidden mx-auto border border-slate-300">
-                        <img src="https://ui-avatars.com/api/?name=Ricardo+Silva&background=random" alt="User" />
+                        <img src={avatarUrl} alt={userName} />
                     </div>
                 </div>
             </nav>

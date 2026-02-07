@@ -3,7 +3,15 @@ import React, { useState, useRef, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ChevronDown, User, Lock, LogOut, CreditCard } from 'lucide-react'
 
-const UserDropdown = ({ user = { name: 'Ricardo Silva', email: 'victor9009@gmail.com', initials: 'RS' } }) => {
+import { useAuth } from '../contexts/AuthContext'
+
+const UserDropdown = () => {
+    const { user, signOut } = useAuth()
+
+    // Fallback if not loaded yet
+    const name = user?.user_metadata?.full_name || 'Usuário'
+    const email = user?.email || ''
+    const initials = name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase()
     const [isOpen, setIsOpen] = useState(false)
     const dropdownRef = useRef(null)
     const navigate = useNavigate()
@@ -19,8 +27,8 @@ const UserDropdown = ({ user = { name: 'Ricardo Silva', email: 'victor9009@gmail
         return () => document.removeEventListener('mousedown', handleClickOutside)
     }, [])
 
-    const handleLogout = () => {
-        // Implement logout logic here (clear tokens, etc)
+    const handleLogout = async () => {
+        await signOut()
         navigate('/login')
     }
 
@@ -31,11 +39,11 @@ const UserDropdown = ({ user = { name: 'Ricardo Silva', email: 'victor9009@gmail
                 className={`flex items-center gap-3 cursor-pointer p-2 rounded-lg transition-colors ${isOpen ? 'bg-slate-100' : 'hover:bg-slate-50'}`}
             >
                 <div className="flex flex-col items-end">
-                    <span className="text-sm font-bold text-slate-700">{user.name}</span>
-                    <span className="text-[10px] text-slate-400">{user.email}</span>
+                    <span className="text-sm font-bold text-slate-700">{name}</span>
+                    <span className="text-[10px] text-slate-400">{email}</span>
                 </div>
                 <div className="size-10 rounded-full bg-orange-100 flex items-center justify-center text-[var(--primary)] font-bold text-sm border border-orange-200">
-                    {user.initials}
+                    {initials}
                 </div>
                 <ChevronDown size={14} className={`text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </button>

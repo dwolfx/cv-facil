@@ -29,6 +29,25 @@ const PrivateRoute = ({ children }) => {
   return children || <Outlet />
 }
 
+// Public Route Component (Redirects to Dashboard if logged in)
+const PublicRoute = ({ children }) => {
+  const { user, loading } = useAuth()
+
+  if (loading) {
+    return (
+      <div className="h-screen w-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 text-[var(--primary)]">
+        <Loader2 size={48} className="animate-spin" />
+      </div>
+    )
+  }
+
+  if (user) {
+    return <Navigate to="/dashboard" />
+  }
+
+  return children || <Outlet />
+}
+
 // Layout wrapper to provide AuthContext and Toaster to all routes
 const RootLayout = () => {
   return (
@@ -43,9 +62,9 @@ const router = createBrowserRouter([
   {
     element: <RootLayout />,
     children: [
-      { path: '/', element: <Landing /> },
-      { path: '/login', element: <Login /> },
-      { path: '/register', element: <Register /> },
+      { path: '/', element: <PublicRoute><Landing /></PublicRoute> },
+      { path: '/login', element: <PublicRoute><Login /></PublicRoute> },
+      { path: '/register', element: <PublicRoute><Register /></PublicRoute> },
       {
         path: '/dashboard',
         element: <PrivateRoute><Dashboard /></PrivateRoute>
