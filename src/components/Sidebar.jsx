@@ -4,9 +4,11 @@ import { Link, useLocation } from 'react-router-dom'
 import { Layout, FileText, UploadCloud, Settings, Hexagon } from 'lucide-react'
 
 import { useAuth } from '../contexts/AuthContext'
+import { useUserPlan } from '../hooks/useUserPlan'
 
 const Sidebar = () => {
     const { user } = useAuth()
+    const { plan } = useUserPlan(user)
     const name = user?.user_metadata?.full_name || 'User'
     const initials = name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase()
 
@@ -48,7 +50,12 @@ const Sidebar = () => {
                     </Link>
 
                     {/* Avatar Initials */}
-                    <div className="size-10 rounded-full bg-orange-100 flex items-center justify-center text-[var(--primary)] font-bold text-sm border border-orange-200">
+                    <div className={`size-10 rounded-full flex items-center justify-center font-bold text-sm border ${plan === 'lifetime'
+                            ? 'bg-purple-100 text-purple-600 border-purple-200'
+                            : ['monthly', 'yearly'].includes(plan)
+                                ? 'bg-emerald-100 text-emerald-600 border-emerald-200'
+                                : 'bg-orange-100 text-[var(--primary)] border-orange-200'
+                        }`}>
                         {initials}
                     </div>
                 </div>

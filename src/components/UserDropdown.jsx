@@ -4,9 +4,11 @@ import { Link, useNavigate } from 'react-router-dom'
 import { ChevronDown, User, Lock, LogOut, CreditCard } from 'lucide-react'
 
 import { useAuth } from '../contexts/AuthContext'
+import { useUserPlan } from '../hooks/useUserPlan'
 
 const UserDropdown = () => {
     const { user, signOut } = useAuth()
+    const { plan } = useUserPlan(user)
 
     // Fallback if not loaded yet
     const name = user?.user_metadata?.full_name || 'Usuário'
@@ -42,7 +44,12 @@ const UserDropdown = () => {
                     <span className="text-sm font-bold text-slate-700">{name}</span>
                     <span className="text-[10px] text-slate-400">{email}</span>
                 </div>
-                <div className="size-10 rounded-full bg-orange-100 flex items-center justify-center text-[var(--primary)] font-bold text-sm border border-orange-200">
+                <div className={`size-10 rounded-full flex items-center justify-center font-bold text-sm border ${plan === 'lifetime'
+                        ? 'bg-purple-100 text-purple-600 border-purple-200'
+                        : ['monthly', 'yearly'].includes(plan)
+                            ? 'bg-emerald-100 text-emerald-600 border-emerald-200'
+                            : 'bg-orange-100 text-[var(--primary)] border-orange-200'
+                    }`}>
                     {initials}
                 </div>
                 <ChevronDown size={14} className={`text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />

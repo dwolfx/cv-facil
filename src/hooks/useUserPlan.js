@@ -11,46 +11,47 @@ export const useUserPlan = (user) => {
         isPremium: false
     })
 
-    useEffect(() => {
+    const checkPlan = async () => {
         if (!user) {
             setLoading(false)
             return
         }
 
-        const fetchPlan = async () => {
-            try {
-                const { data, error } = await supabase
-                    .from('profiles')
-                    .select('plan_tier')
-                    .eq('id', user.id)
-                    .single()
+        try {
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('plan_tier')
+                .eq('id', user.id)
+                .single()
 
-                if (error) throw error
+            // If error is PGRST116 (0 rows), it means profile doesn't exist yet, default to free
+            if (error && error.code !== 'PGRST116') throw error
 
-                const tier = data?.plan_tier || 'free'
-                setPlan(tier)
+            const tier = data?.plan_tier || 'free'
+            setPlan(tier)
 
-                // Define feature flags based on tier
-                // 'lifetime', 'yearly', 'monthly' are considered premium
-                const isPremium = ['lifetime', 'yearly', 'monthly'].includes(tier)
+            // Define feature flags based on tier
+            // 'lifetime', 'yearly', 'monthly' are considered premium
+            const isPremium = ['lifetime', 'yearly', 'monthly'].includes(tier)
 
-                setFeatures({
-                    maxResumes: isPremium ? 999 : 2, // Free: 2, Premium: Unlimited (999)
-                    canDownloadPDF: true,
-                    canRemoveBranding: isPremium,
-                    isPremium
-                })
+            setFeatures({
+                maxResumes: isPremium ? 999 : 2, // Free: 2, Premium: Unlimited (999)
+                canDownloadPDF: true,
+                canRemoveBranding: isPremium,
+                isPremium
+            })
 
-            } catch (error) {
-                console.error('Error fetching user plan:', error)
-                // Fallback to free
-            } finally {
-                setLoading(false)
-            }
+        } catch (error) {
+            console.error('Error fetching user plan:', error)
+            // Fallback to free handled by initial state
+        } finally {
+            setLoading(false)
         }
+    }
 
-        fetchPlan()
+    useEffect(() => {
+        checkPlan()
     }, [user])
 
-    return { plan, loading, features }
+    return { plan, loading, features, checkPlan }
 }

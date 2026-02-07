@@ -14,21 +14,40 @@ import { useUserPlan } from '../../hooks/useUserPlan'
 
 const Upgrade = () => {
     const { user } = useAuth()
-    const { features } = useUserPlan(user || {})
+    const { features, checkPlan } = useUserPlan(user || {})
     const [billingCycle, setBillingCycle] = useState('monthly')
     const [resumeCount, setResumeCount] = useState(0)
     const [searchParams] = useSearchParams()
+    const [showSuccess, setShowSuccess] = useState(false)
 
     useEffect(() => {
         if (searchParams.get('success') === 'true') {
+            setShowSuccess(true)
             toast.success('Pagamento recebido! 🚀', {
-                description: 'Sua assinatura está sendo ativada. Pode levar alguns instantes.',
-                duration: 8000,
+                description: 'Validando sua assinatura...',
+                duration: 5000,
             })
-            // Clear the URL param
+
+            // Remove param from URL
             const url = new URL(window.location)
             url.searchParams.delete('success')
             window.history.replaceState({}, '', url)
+
+            // Poll for plan update (every 2s for 20s) to catch webhook
+            checkPlan() // Immediate check
+            const interval = setInterval(() => {
+                checkPlan()
+                console.log('Checking plan update...')
+            }, 2000)
+
+            const timeout = setTimeout(() => {
+                clearInterval(interval)
+            }, 20000)
+
+            return () => {
+                clearInterval(interval)
+                clearTimeout(timeout)
+            }
         }
     }, [searchParams])
 
@@ -76,6 +95,41 @@ const Upgrade = () => {
         }
 
         window.location.href = `${paymentLink}?client_reference_id=${user.id}`
+    }
+
+    if (showSuccess) {
+        return (
+            <div className="bg-[#f8f9fa] dark:bg-slate-900 font-sans text-slate-900 dark:text-slate-100 h-screen flex flex-row overflow-hidden pb-24 md:pb-0">
+                <Sidebar />
+                <div className="flex-1 flex flex-col h-full overflow-hidden">
+                    <Header title="Assinatura Confirmada" isPremium={true} />
+                    <main className="flex-1 overflow-y-auto p-6 md:p-10 flex items-center justify-center">
+                        <div className="max-w-2xl w-full bg-white dark:bg-slate-800 rounded-2xl p-8 md:p-12 border border-slate-200 dark:border-slate-700 shadow-xl text-center relative overflow-hidden animate-in fade-in zoom-in duration-500">
+                            {/* Background decoration */}
+                            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-green-400 to-emerald-600"></div>
+                            <div className="absolute -top-24 -right-24 w-64 h-64 bg-green-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                            <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-[var(--primary)]/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                            <div className="w-24 h-24 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-green-500/20 animate-bounce">
+                                <CheckCircle size={48} className="text-green-600 dark:text-green-400" />
+                            </div>
+
+                            <h1 className="text-3xl md:text-4xl font-extrabold text-slate-800 dark:text-white mb-4">
+                                Parabéns! 🚀
+                            </h1>
+                            <p className="text-lg text-slate-600 dark:text-slate-300 mb-8 leading-relaxed">
+                                Sua assinatura foi confirmada com sucesso. <br />
+                                Agora você tem acesso ilimitado a todos os recursos <b>Premium</b>.
+                            </p>
+
+                            <Link to="/dashboard" className="inline-flex items-center justify-center w-full md:w-auto px-8 py-4 bg-[var(--primary)] text-white text-lg font-bold rounded-xl shadow-lg hover:bg-orange-600 transition-all transform hover:scale-105">
+                                Ir para o Dashboard
+                            </Link>
+                        </div>
+                    </main>
+                </div>
+            </div>
+        )
     }
 
     return (

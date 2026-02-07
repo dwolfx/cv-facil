@@ -282,40 +282,66 @@ const Settings = () => {
                 return (
                     <div className="max-w-2xl space-y-6 animate-in fade-in duration-300">
                         {/* Plan Card */}
-                        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-sm relative overflow-hidden">
+                        <div className={`relative overflow-hidden rounded-xl p-6 shadow-sm border ${plan === 'lifetime'
+                                ? 'bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800'
+                                : ['monthly', 'yearly'].includes(plan)
+                                    ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800'
+                                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800'
+                            }`}>
                             <div className="absolute top-0 right-0 p-4 opacity-5">
-                                <CreditCard size={120} />
+                                <CreditCard size={120} className={plan === 'lifetime' ? 'text-purple-600' : 'text-slate-900'} />
                             </div>
+
                             <div className="relative z-10 flex justify-between items-start">
                                 <div>
-                                    <span className={`inline-block px-3 py-1 ${features.isPremium ? 'bg-emerald-100 text-emerald-800' : 'bg-orange-100 text-[var(--primary)]'} text-[10px] font-bold uppercase tracking-wider rounded-full mb-3`}>Plano Atual</span>
+                                    <span className={`inline-block px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-full mb-3 ${plan === 'lifetime'
+                                            ? 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300'
+                                            : ['monthly', 'yearly'].includes(plan)
+                                                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300'
+                                                : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
+                                        }`}>
+                                        {plan === 'lifetime' ? 'Vitalício' : plan === 'free' ? 'Plano Gratuito' : 'Assinatura Ativa'}
+                                    </span>
+
                                     <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-1">
-                                        {features.isPremium ? 'Plano PRO 🚀' : 'Plano Gratuito'}
+                                        {plan === 'lifetime' ? 'Plano Lifetime 👑' : features.isPremium ? 'Plano Premium 🚀' : 'Plano Gratuito'}
                                     </h2>
                                     <p className="text-slate-500 text-sm">
                                         {features.isPremium ? 'Você tem superpoderes desbloqueados.' : 'Ideal para quem está começando.'}
                                     </p>
                                 </div>
+
                                 <div className="text-right">
-                                    <div className="text-3xl font-bold text-slate-800">
-                                        {plan === 'monthly' ? 'R$ 5' : plan === 'yearly' ? 'R$ 50' : plan === 'lifetime' ? 'R$ 150' : 'R$ 0'}
-                                    </div>
-                                    <div className="text-xs text-slate-400">
-                                        {plan === 'lifetime' ? '/ único' : plan === 'free' ? '/ mês' : '/ ano'}
-                                    </div>
+                                    {plan === 'lifetime' ? (
+                                        <div className="flex flex-col items-end">
+                                            <span className="text-purple-600 dark:text-purple-400 font-black text-lg tracking-wide">
+                                                VITALÍCIO
+                                            </span>
+                                            <span className="text-[10px] text-purple-400 uppercase tracking-wider">Sem cobranças</span>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <div className="text-3xl font-bold text-slate-800 dark:text-white">
+                                                {plan === 'monthly' ? 'R$ 10' : plan === 'yearly' ? 'R$ 100' : 'R$ 0'}
+                                            </div>
+                                            <div className="text-xs text-slate-400">
+                                                {plan === 'yearly' ? '/ ano' : '/ mês'}
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
                             </div>
 
                             <div className="mt-6 grid grid-cols-2 gap-4">
-                                <div className="p-3 bg-slate-50 rounded-lg border border-slate-100">
+                                <div className="p-3 bg-white/50 dark:bg-black/20 rounded-lg border border-slate-100 dark:border-slate-700">
                                     <div className="text-xs text-slate-500 mb-1">Currículos</div>
-                                    <div className="font-bold text-slate-800">
+                                    <div className="font-bold text-slate-800 dark:text-slate-200">
                                         {resumeCount} de {features.isPremium ? 'Ilimitado' : features.maxResumes}
                                     </div>
                                 </div>
-                                <div className="p-3 bg-slate-50 rounded-lg border border-slate-100">
+                                <div className="p-3 bg-white/50 dark:bg-black/20 rounded-lg border border-slate-100 dark:border-slate-700">
                                     <div className="text-xs text-slate-500 mb-1">Downloads PDF</div>
-                                    <div className="font-bold text-slate-800">Ilimitado</div>
+                                    <div className="font-bold text-slate-800 dark:text-slate-200">Ilimitado</div>
                                 </div>
                             </div>
                         </div>
