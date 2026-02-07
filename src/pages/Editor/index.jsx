@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams, useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 import { useAuth } from '../../contexts/AuthContext'
 import UnsavedChangesModal from '../../components/UnsavedChangesModal'
 import { Loader2 } from 'lucide-react'
@@ -22,6 +23,7 @@ import { supabase } from '../../services/supabaseClient'
 
 const Editor = () => {
     const { user } = useAuth()
+    const navigate = useNavigate()
     const [searchParams] = useSearchParams()
     const resumeId = searchParams.get('id')
     const [resumeCount, setResumeCount] = useState(0)
@@ -44,6 +46,31 @@ const Editor = () => {
     } = useResume(user, resumeId)
 
     const { features: planFeatures } = useUserPlan(user)
+
+    // Redirect if resume is locked (Limit Enforcement)
+    useEffect(() => {
+        if (!user || !resumeId || planFeatures.isPremium) return
+
+        const checkLock = async () => {
+            const { data, error } = await supabase
+                .from('resumes')
+                .select('id')
+                .eq('user_id', user.id)
+                .order('updated_at', { ascending: false })
+
+            if (error || !data) return
+
+            const index = data.findIndex(r => r.id === resumeId)
+
+            if (index >= planFeatures.maxResumes) {
+                toast.error('Acesso Bloqueado', {
+                    description: 'Este currículo excede o limite do seu plano gratuito. Faça upgrade para editar.'
+                })
+                navigate('/dashboard')
+            }
+        }
+        checkLock()
+    }, [user, resumeId, planFeatures, navigate])
 
     // Fetch Resume Count
     useEffect(() => {

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import {
-    ChevronDown, PlusCircle, MoreVertical, Edit2, Trash2, Clock, CheckCircle, Loader2, Download
+    ChevronDown, PlusCircle, MoreVertical, Edit2, Trash2, Clock, CheckCircle, Loader2, Download, Lock
 } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -238,151 +238,181 @@ const Dashboard = () => {
                                 </button>
 
                                 {/* Resume Cards */}
-                                {resumes.map(resume => (
-                                    <div key={resume.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group flex flex-col h-[280px] md:h-[320px]">
-                                        {/* Preview Area (Top 60%) */}
-                                        <div className="h-[55%] md:h-[60%] bg-slate-100 dark:bg-slate-800 relative overflow-hidden flex items-start justify-center pt-6 group-hover:bg-slate-100/50 transition-colors">
-                                            <div className="w-[85%] md:w-[80%] h-full bg-white shadow-lg rounded-t-sm origin-top mx-auto pointer-events-none transform group-hover:scale-105 transition-transform duration-500 border-t border-x border-slate-200/50 flex flex-col p-4 overflow-hidden relative">
-                                                {/* Paper Texture / Content */}
-                                                {resume.content?.personalInfo?.fullName ? (
-                                                    <div className="flex flex-col gap-2">
-                                                        {/* User Name */}
-                                                        <div className="font-bold text-slate-800 text-[10px] uppercase tracking-wider border-b border-slate-100 pb-1 mb-1">
-                                                            {resume.content.personalInfo.fullName}
-                                                        </div>
+                                {resumes.map((resume, index) => {
+                                    const isLocked = !features.isPremium && index >= planLimit
 
-                                                        {/* User Role */}
-                                                        {resume.content.personalInfo.role && (
-                                                            <div className="text-[8px] font-semibold text-blue-600 uppercase mb-1">
-                                                                {resume.content.personalInfo.role}
+                                    return (
+                                        <div key={resume.id} className={`bg-white dark:bg-slate-900 border ${isLocked ? 'border-slate-200 dark:border-slate-800 opacity-75' : 'border-slate-200 dark:border-slate-800'} rounded-xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group flex flex-col h-[280px] md:h-[320px] relative`}>
+
+                                            {/* Locked Overlay on Preview */}
+                                            {isLocked && (
+                                                <div className="absolute top-3 left-3 z-30">
+                                                    <div className="bg-slate-800 text-white text-[10px] px-2 py-1 rounded font-bold uppercase tracking-wider flex items-center gap-1 shadow-lg">
+                                                        <Lock size={10} /> Bloqueado
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Preview Area (Top 60%) */}
+                                            <div className={`h-[55%] md:h-[60%] bg-slate-100 dark:bg-slate-800 relative overflow-hidden flex items-start justify-center pt-6 ${!isLocked && 'group-hover:bg-slate-100/50'} transition-colors`}>
+                                                <div className={`w-[85%] md:w-[80%] h-full bg-white shadow-lg rounded-t-sm origin-top mx-auto pointer-events-none transform ${!isLocked && 'group-hover:scale-105'} transition-transform duration-500 border-t border-x border-slate-200/50 flex flex-col p-4 overflow-hidden relative ${isLocked && 'grayscale opacity-75'}`}>
+                                                    {/* Paper Texture / Content */}
+                                                    {resume.content?.personalInfo?.fullName ? (
+                                                        <div className="flex flex-col gap-2">
+                                                            {/* User Name */}
+                                                            <div className="font-bold text-slate-800 text-[10px] uppercase tracking-wider border-b border-slate-100 pb-1 mb-1">
+                                                                {resume.content.personalInfo.fullName}
                                                             </div>
-                                                        )}
 
-                                                        {/* Fake Content Lines (Skeleton based on Real Data presence) */}
-                                                        <div className="space-y-1.5 opacity-60">
-                                                            {/* Summary or lines */}
-                                                            <div className="h-1 bg-slate-200 rounded-full w-full"></div>
-                                                            <div className="h-1 bg-slate-100 rounded-full w-5/6"></div>
-                                                            <div className="h-1 bg-slate-100 rounded-full w-4/6"></div>
+                                                            {/* User Role */}
+                                                            {resume.content.personalInfo.role && (
+                                                                <div className="text-[8px] font-semibold text-blue-600 uppercase mb-1">
+                                                                    {resume.content.personalInfo.role}
+                                                                </div>
+                                                            )}
 
-                                                            {/* Gap */}
-                                                            <div className="h-2"></div>
+                                                            {/* Fake Content Lines (Skeleton based on Real Data presence) */}
+                                                            <div className="space-y-1.5 opacity-60">
+                                                                {/* Summary or lines */}
+                                                                <div className="h-1 bg-slate-200 rounded-full w-full"></div>
+                                                                <div className="h-1 bg-slate-100 rounded-full w-5/6"></div>
+                                                                <div className="h-1 bg-slate-100 rounded-full w-4/6"></div>
 
-                                                            {/* Experience Mockup */}
-                                                            <div className="h-1.5 bg-slate-200 rounded-full w-1/3 mb-1"></div>
-                                                            <div className="h-1 bg-slate-100 rounded-full w-full"></div>
-                                                            <div className="h-1 bg-slate-100 rounded-full w-3/4"></div>
+                                                                {/* Gap */}
+                                                                <div className="h-2"></div>
+
+                                                                {/* Experience Mockup */}
+                                                                <div className="h-1.5 bg-slate-200 rounded-full w-1/3 mb-1"></div>
+                                                                <div className="h-1 bg-slate-100 rounded-full w-full"></div>
+                                                                <div className="h-1 bg-slate-100 rounded-full w-3/4"></div>
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <>
+                                                            {/* Empty/Skeleton State */}
+                                                            <div className="h-3 w-full bg-blue-600/10 mb-2 rounded-sm"></div>
+                                                            <div className="space-y-2 p-1">
+                                                                <div className="h-2 w-1/2 bg-slate-200 rounded"></div>
+                                                                <div className="h-2 w-3/4 bg-slate-100 rounded"></div>
+                                                                <div className="h-2 w-full bg-slate-100 rounded"></div>
+                                                                <div className="h-2 w-full bg-slate-100 rounded"></div>
+                                                            </div>
+                                                        </>
+                                                    )}
+
+                                                    {/* Fade Out Effect at Bottom */}
+                                                    <div className="absolute bottom-0 left-0 w-full h-12 bg-gradient-to-t from-white to-transparent pointer-events-none"></div>
+                                                </div>
+
+                                                {/* Actions Overlay / Dropdown - Hide if Locked */}
+                                                {!isLocked && (
+                                                    <div className="absolute top-3 right-3 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                                                        <div className="relative">
+                                                            <button
+                                                                onClick={(e) => handleMenuClick(e, resume.id)}
+                                                                className="p-2 bg-white rounded-full shadow-md text-slate-600 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                                                            >
+                                                                <MoreVertical size={16} />
+                                                            </button>
+
+                                                            {openMenuId === resume.id && (
+                                                                <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-slate-200 rounded-lg shadow-xl overflow-hidden animate-in fade-in zoom-in-95 z-50 flex flex-col">
+                                                                    <Link
+                                                                        to={`/editor?id=${resume.id}`}
+                                                                        className="w-full text-left px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2 border-b border-slate-100"
+                                                                    >
+                                                                        <Edit2 size={14} /> Editar
+                                                                    </Link>
+                                                                    <button
+                                                                        onClick={(e) => startRenaming(e, resume)}
+                                                                        className="w-full text-left px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                                                                    >
+                                                                        <Edit2 size={14} className="opacity-0" />
+                                                                        Renomear
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={(e) => { e.stopPropagation(); handleDelete(resume.id); }}
+                                                                        className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 border-t border-slate-100"
+                                                                    >
+                                                                        <Trash2 size={14} /> Excluir
+                                                                    </button>
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     </div>
-                                                ) : (
-                                                    <>
-                                                        {/* Empty/Skeleton State */}
-                                                        <div className="h-3 w-full bg-blue-600/10 mb-2 rounded-sm"></div>
-                                                        <div className="space-y-2 p-1">
-                                                            <div className="h-2 w-1/2 bg-slate-200 rounded"></div>
-                                                            <div className="h-2 w-3/4 bg-slate-100 rounded"></div>
-                                                            <div className="h-2 w-full bg-slate-100 rounded"></div>
-                                                            <div className="h-2 w-full bg-slate-100 rounded"></div>
-                                                        </div>
-                                                    </>
                                                 )}
-
-                                                {/* Fade Out Effect at Bottom */}
-                                                <div className="absolute bottom-0 left-0 w-full h-12 bg-gradient-to-t from-white to-transparent pointer-events-none"></div>
                                             </div>
-                                            {/* Actions Overlay / Dropdown */}
-                                            <div className="absolute top-3 right-3 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity z-20">
-                                                <div className="relative">
+
+                                            {/* Info Area */}
+                                            <div className="flex-1 p-4 md:p-5 flex flex-col justify-between relative bg-white dark:bg-slate-900 z-10">
+                                                <div>
+                                                    {renamingId === resume.id ? (
+                                                        <div className="mb-1 flex items-center gap-1">
+                                                            <input
+                                                                type="text"
+                                                                value={tempTitle}
+                                                                onChange={(e) => setTempTitle(e.target.value)}
+                                                                className="w-full text-sm font-bold border rounded px-1 py-0.5 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                                                autoFocus
+                                                                onKeyDown={(e) => e.key === 'Enter' && saveRename(resume.id)}
+                                                            />
+                                                            <button onClick={() => saveRename(resume.id)} className="text-green-600 hover:bg-green-50 p-1 rounded"><CheckCircle size={14} /></button>
+                                                            <button onClick={cancelRenaming} className="text-red-500 hover:bg-red-50 p-1 rounded"><Trash2 size={14} /></button>
+                                                        </div>
+                                                    ) : (
+                                                        <h3 className="font-bold text-slate-800 dark:text-white text-base mb-1 truncate" title={resume.title}>{resume.title || 'Sem Título'}</h3>
+                                                    )}
+                                                    <div className="flex items-center gap-2 text-[10px] md:text-xs text-slate-400 mb-3">
+                                                        <Clock size={12} />
+                                                        <span>Atualizado em {formatDate(resume.updated_at)}</span>
+                                                    </div>
+
+                                                    {/* Strength Meter Mini */}
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                                            <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${resume.strength || 0}%` }}></div>
+                                                        </div>
+                                                        <span className="text-[10px] font-bold text-emerald-600">{resume.strength || 0}%</span>
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex gap-2 mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 relative z-20">
+                                                    {/* Edit Button - Disabled if Locked */}
+                                                    {isLocked ? (
+                                                        <button
+                                                            onClick={() => toast.error('Limite excedido.', { description: 'Faça upgrade para editar este currículo.' })}
+                                                            className="flex-1 h-8 md:h-9 flex items-center justify-center gap-2 bg-slate-100 text-slate-400 rounded-lg text-xs font-bold cursor-not-allowed uppercase tracking-wider"
+                                                        >
+                                                            <Lock size={14} /> Bloqueado
+                                                        </button>
+                                                    ) : (
+                                                        <Link to={`/editor?id=${resume.id}`} className="flex-1 h-8 md:h-9 flex items-center justify-center gap-2 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 transition-colors shadow-sm shadow-blue-200">
+                                                            <Edit2 size={14} /> Editar
+                                                        </Link>
+                                                    )}
+
+                                                    {/* Download Button - Always enabled */}
                                                     <button
-                                                        onClick={(e) => handleMenuClick(e, resume.id)}
-                                                        className="p-2 bg-white rounded-full shadow-md text-slate-600 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                                                        onClick={() => handleDownload(resume)}
+                                                        className="h-8 md:h-9 flex items-center justify-center px-3 gap-2 bg-orange-50 text-orange-600 hover:text-orange-700 hover:bg-orange-100 rounded-lg transition-colors border border-orange-200 hover:border-orange-300 shadow-sm font-bold pointer-events-auto"
+                                                        title="Baixar PDF"
                                                     >
-                                                        <MoreVertical size={16} />
+                                                        <Download size={14} />
+                                                        <span className="text-[10px] hidden xl:inline">PDF</span>
                                                     </button>
 
-                                                    {openMenuId === resume.id && (
-                                                        <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-slate-200 rounded-lg shadow-xl overflow-hidden animate-in fade-in zoom-in-95 z-50 flex flex-col">
-                                                            <Link
-                                                                to={`/editor?id=${resume.id}`}
-                                                                className="w-full text-left px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2 border-b border-slate-100"
-                                                            >
-                                                                <Edit2 size={14} /> Editar
-                                                            </Link>
-                                                            <button
-                                                                onClick={(e) => startRenaming(e, resume)}
-                                                                className="w-full text-left px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2"
-                                                            >
-                                                                <Edit2 size={14} className="opacity-0" /> {/* Spacer/Icon reused for consistency or use another icon like Tag */}
-                                                                Renomear
-                                                            </button>
-                                                            <button
-                                                                onClick={(e) => { e.stopPropagation(); handleDelete(resume.id); }}
-                                                                className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 border-t border-slate-100"
-                                                            >
-                                                                <Trash2 size={14} /> Excluir
-                                                            </button>
-                                                        </div>
-                                                    )}
+                                                    <button
+                                                        onClick={() => handleDelete(resume.id)}
+                                                        className="h-8 w-8 md:h-9 md:w-9 flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-100 pointer-events-auto"
+                                                        title="Excluir"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
                                                 </div>
                                             </div>
                                         </div>
-
-                                        {/* Info Area */}
-                                        <div className="flex-1 p-4 md:p-5 flex flex-col justify-between relative bg-white dark:bg-slate-900 z-10">
-                                            <div>
-                                                {renamingId === resume.id ? (
-                                                    <div className="mb-1 flex items-center gap-1">
-                                                        <input
-                                                            type="text"
-                                                            value={tempTitle}
-                                                            onChange={(e) => setTempTitle(e.target.value)}
-                                                            className="w-full text-sm font-bold border rounded px-1 py-0.5 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                                            autoFocus
-                                                            onKeyDown={(e) => e.key === 'Enter' && saveRename(resume.id)}
-                                                        />
-                                                        <button onClick={() => saveRename(resume.id)} className="text-green-600 hover:bg-green-50 p-1 rounded"><CheckCircle size={14} /></button>
-                                                        <button onClick={cancelRenaming} className="text-red-500 hover:bg-red-50 p-1 rounded"><Trash2 size={14} /></button>
-                                                    </div>
-                                                ) : (
-                                                    <h3 className="font-bold text-slate-800 dark:text-white text-base mb-1 truncate" title={resume.title}>{resume.title || 'Sem Título'}</h3>
-                                                )}
-                                                <div className="flex items-center gap-2 text-[10px] md:text-xs text-slate-400 mb-3">
-                                                    <Clock size={12} />
-                                                    <span>Atualizado em {formatDate(resume.updated_at)}</span>
-                                                </div>
-
-                                                {/* Strength Meter Mini */}
-                                                <div className="flex items-center gap-2">
-                                                    <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                                                        <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${resume.strength || 0}%` }}></div>
-                                                    </div>
-                                                    <span className="text-[10px] font-bold text-emerald-600">{resume.strength || 0}%</span>
-                                                </div>
-                                            </div>
-
-                                            <div className="flex gap-2 mt-3 pt-3 border-t border-slate-100 dark:border-slate-800">
-                                                <Link to={`/editor?id=${resume.id}`} className="flex-1 h-8 md:h-9 flex items-center justify-center gap-2 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 transition-colors shadow-sm shadow-blue-200">
-                                                    <Edit2 size={14} /> Editar
-                                                </Link>
-                                                <button
-                                                    onClick={() => handleDownload(resume)}
-                                                    className="h-8 md:h-9 flex items-center justify-center px-3 gap-2 bg-orange-50 text-orange-600 hover:text-orange-700 hover:bg-orange-100 rounded-lg transition-colors border border-orange-200 hover:border-orange-300 shadow-sm font-bold"
-                                                    title="Baixar PDF"
-                                                >
-                                                    <Download size={14} />
-                                                    <span className="text-[10px] hidden xl:inline">PDF</span>
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDelete(resume.id)}
-                                                    className="h-8 w-8 md:h-9 md:w-9 flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-100"
-                                                    title="Excluir"
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
+                                    )
+                                })}
                             </div>
                         )}
                     </div>
