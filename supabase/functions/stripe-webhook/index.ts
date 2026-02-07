@@ -32,18 +32,21 @@ serve(async (req) => {
         const session = event.data.object
         const userId = session.client_reference_id
 
-        // Determine plan based on amount or price ID
-        // You can also use session.line_items if you expand line_items in the webhook
-        const amount = session.amount_total
-        let newPlan = 'lifetime' // Default fallback
+        // Determine plan based on amount (using subtotal to handle coupons)
+        const amount = session.amount_subtotal || session.amount_total
+        let newPlan = ''
 
-        // Preços Ajustados:
-        // R$ 10,00 = 1000 centavos
-        // R$ 100,00 = 10000 centavos
-        // R$ 300,00 = 30000 centavos
-        if (amount === 1000) newPlan = 'monthly'
-        if (amount === 10000) newPlan = 'yearly'
-        if (amount === 30000) newPlan = 'lifetime'
+        // Preços Ajustados (em centavos):
+        if (amount === 1000) newPlan = 'monthly' // R$ 10,00
+        if (amount === 10000) newPlan = 'yearly' // R$ 100,00
+        if (amount === 30000) newPlan = 'lifetime' // R$ 300,00
+
+        console.log(`Processing payment: Amount=${amount} (Subtotal=${session.amount_subtotal}), Plan=${newPlan}, User=${userId}`)
+
+        if (!newPlan) {
+            console.error('Unknown plan amount:', amount)
+            return new Response('Unknown plan amount', { status: 400 })
+        }
 
         if (userId) {
             const supabase = createClient(
