@@ -89,19 +89,26 @@ const Dashboard = () => {
         }
     }
 
-    const handleDelete = async (id) => {
-        if (!confirm('Tem certeza que deseja excluir este currículo?')) return
+    const [resumeToDelete, setResumeToDelete] = useState(null)
+
+    const handleDelete = (id) => {
+        setResumeToDelete(id)
+    }
+
+    const confirmDelete = async () => {
+        if (!resumeToDelete) return
 
         try {
             const { error } = await supabase
                 .from('resumes')
                 .delete()
-                .eq('id', id)
+                .eq('id', resumeToDelete)
 
             if (error) throw error
 
-            setResumes(prev => prev.filter(r => r.id !== id))
+            setResumes(prev => prev.filter(r => r.id !== resumeToDelete))
             toast.success('Currículo excluído com sucesso.')
+            setResumeToDelete(null)
         } catch (error) {
             console.error('Error deleting resume:', error)
             toast.error('Erro ao excluir currículo.')
@@ -137,18 +144,47 @@ const Dashboard = () => {
         }
     }
 
-    const handleCreateNew = () => {
+    const handleCreateNew = async () => {
         if (resumes.length >= planLimit) {
             toast.error('Limite do Plano Gratuito atingido!', {
                 description: 'Você já possui 2 currículos criados. Faça upgrade para criar ilimitados.'
             })
             return
         }
-        navigate('/editor')
+
+        const toastId = toast.loading('Criando novo currículo...')
+
+        try {
+            // Minimal initial content
+            const initialContent = {
+                personalInfo: { fullName: '', role: '', summary: '', locations: [], email: '', phone: '', linkedin: '', portfolio: '' },
+                experience: [],
+                education: [],
+                skills: [],
+                languages: []
+            }
+
+            const { data, error } = await supabase
+                .from('resumes')
+                .insert({
+                    user_id: user.id,
+                    title: 'Meu Currículo',
+                    content: initialContent,
+                    strength: 0,
+                    updated_at: new Date()
+                })
+                .select()
+                .single()
+
+            if (error) throw error
+
+            toast.success('Currículo criado!', { id: toastId })
+            navigate(`/editor?id=${data.id}`)
+        } catch (error) {
+            console.error(error)
+            toast.error('Erro ao criar currículo.', { id: toastId })
+        }
     }
-
-
-
 
 
     return (
@@ -206,14 +242,53 @@ const Dashboard = () => {
                                     <div key={resume.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group flex flex-col h-[280px] md:h-[320px]">
                                         {/* Preview Area (Top 60%) */}
                                         <div className="h-[55%] md:h-[60%] bg-slate-100 dark:bg-slate-800 relative overflow-hidden flex items-start justify-center pt-6 group-hover:bg-slate-100/50 transition-colors">
-                                            <div className="w-[85%] md:w-[80%] h-full bg-white shadow-lg rounded-t-sm origin-top mx-auto pointer-events-none transform group-hover:scale-105 transition-transform duration-500 border-t border-x border-slate-200/50">
-                                                <div className="h-3 w-full bg-blue-600/10 mb-2"></div>
-                                                <div className="space-y-2 p-2">
-                                                    <div className="h-2 w-1/2 bg-slate-200 rounded"></div>
-                                                    <div className="h-2 w-3/4 bg-slate-100 rounded"></div>
-                                                    <div className="h-2 w-full bg-slate-100 rounded"></div>
-                                                    <div className="h-2 w-full bg-slate-100 rounded"></div>
-                                                </div>
+                                            <div className="w-[85%] md:w-[80%] h-full bg-white shadow-lg rounded-t-sm origin-top mx-auto pointer-events-none transform group-hover:scale-105 transition-transform duration-500 border-t border-x border-slate-200/50 flex flex-col p-4 overflow-hidden relative">
+                                                {/* Paper Texture / Content */}
+                                                {resume.content?.personalInfo?.fullName ? (
+                                                    <div className="flex flex-col gap-2">
+                                                        {/* User Name */}
+                                                        <div className="font-bold text-slate-800 text-[10px] uppercase tracking-wider border-b border-slate-100 pb-1 mb-1">
+                                                            {resume.content.personalInfo.fullName}
+                                                        </div>
+
+                                                        {/* User Role */}
+                                                        {resume.content.personalInfo.role && (
+                                                            <div className="text-[8px] font-semibold text-blue-600 uppercase mb-1">
+                                                                {resume.content.personalInfo.role}
+                                                            </div>
+                                                        )}
+
+                                                        {/* Fake Content Lines (Skeleton based on Real Data presence) */}
+                                                        <div className="space-y-1.5 opacity-60">
+                                                            {/* Summary or lines */}
+                                                            <div className="h-1 bg-slate-200 rounded-full w-full"></div>
+                                                            <div className="h-1 bg-slate-100 rounded-full w-5/6"></div>
+                                                            <div className="h-1 bg-slate-100 rounded-full w-4/6"></div>
+
+                                                            {/* Gap */}
+                                                            <div className="h-2"></div>
+
+                                                            {/* Experience Mockup */}
+                                                            <div className="h-1.5 bg-slate-200 rounded-full w-1/3 mb-1"></div>
+                                                            <div className="h-1 bg-slate-100 rounded-full w-full"></div>
+                                                            <div className="h-1 bg-slate-100 rounded-full w-3/4"></div>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <>
+                                                        {/* Empty/Skeleton State */}
+                                                        <div className="h-3 w-full bg-blue-600/10 mb-2 rounded-sm"></div>
+                                                        <div className="space-y-2 p-1">
+                                                            <div className="h-2 w-1/2 bg-slate-200 rounded"></div>
+                                                            <div className="h-2 w-3/4 bg-slate-100 rounded"></div>
+                                                            <div className="h-2 w-full bg-slate-100 rounded"></div>
+                                                            <div className="h-2 w-full bg-slate-100 rounded"></div>
+                                                        </div>
+                                                    </>
+                                                )}
+
+                                                {/* Fade Out Effect at Bottom */}
+                                                <div className="absolute bottom-0 left-0 w-full h-12 bg-gradient-to-t from-white to-transparent pointer-events-none"></div>
                                             </div>
                                             {/* Actions Overlay / Dropdown */}
                                             <div className="absolute top-3 right-3 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity z-20">
@@ -313,6 +388,35 @@ const Dashboard = () => {
                     </div>
                 </main>
 
+                {/* Custom Delete Modal */}
+                {resumeToDelete && (
+                    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm animate-in fade-in duration-200">
+                        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-100 dark:border-slate-800">
+                            <div className="p-6 text-center">
+                                <div className="mx-auto bg-red-100 w-16 h-16 rounded-full flex items-center justify-center mb-4 text-red-600">
+                                    <Trash2 size={32} />
+                                </div>
+                                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Excluir Currículo?</h3>
+                                <p className="text-sm text-slate-500 mb-6">Esta ação é irreversível. O currículo será apagado permanentemente.</p>
+
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={() => setResumeToDelete(null)}
+                                        className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 transition-colors"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button
+                                        onClick={confirmDelete}
+                                        className="flex-1 py-2.5 rounded-xl bg-red-600 text-white font-bold hover:bg-red-700 shadow-lg shadow-red-200 transition-all"
+                                    >
+                                        Sim, Excluir
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     )

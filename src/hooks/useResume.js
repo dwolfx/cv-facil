@@ -54,14 +54,7 @@ export const useResume = (user, resumeId) => {
         setStrength(Math.min(score, 100))
     }, [resumeData])
 
-    // Auto-Create on First Edit/Import
-    useEffect(() => {
-        // If we don't have an ID (new resume), and data has changed (isDirty), and we aren't already saving...
-        if (!resumeId && isDirty && !submitting) {
-            // Trigger immediate save to reserve the slot and create ID
-            handleSave(true)
-        }
-    }, [isDirty, resumeId, submitting]) // Dependencies need to be precise
+
 
     // Fetch Resume
     useEffect(() => {

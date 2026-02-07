@@ -7,8 +7,8 @@ import { useAuth } from '../contexts/AuthContext'
 
 const Sidebar = () => {
     const { user } = useAuth()
-    const userName = user?.user_metadata?.full_name || 'User'
-    const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=random`
+    const name = user?.user_metadata?.full_name || 'User'
+    const initials = name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase()
 
     const location = useLocation()
     const currentPath = location.pathname
@@ -41,13 +41,15 @@ const Sidebar = () => {
                     </div>
                 </div>
 
-                <div className="mt-auto flex flex-col gap-4 w-full">
+                <div className="mt-auto flex flex-col gap-4 w-full items-center mb-4">
                     <Link to="/settings" className={`h-10 w-full flex items-center justify-center transition-colors relative group ${isActive('/settings') ? 'text-[var(--primary)] bg-orange-50 border-r-2 border-[var(--primary)]' : 'text-slate-400 hover:text-[var(--primary)]'}`}>
                         <Settings size={20} />
                         <span className="absolute left-14 bg-slate-800 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none">Configurações</span>
                     </Link>
-                    <div className="size-8 rounded-full bg-slate-200 overflow-hidden mx-auto border border-slate-300">
-                        <img src={avatarUrl} alt={userName} />
+
+                    {/* Avatar Initials */}
+                    <div className="size-10 rounded-full bg-orange-100 flex items-center justify-center text-[var(--primary)] font-bold text-sm border border-orange-200">
+                        {initials}
                     </div>
                 </div>
             </nav>
