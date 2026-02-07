@@ -8,15 +8,44 @@ import UserDropdown from '../../components/UserDropdown'
 import PlanWidget from '../../components/PlanWidget'
 
 import Header from '../../components/Header'
+import { useAuth } from '../../contexts/AuthContext'
 
 const Upgrade = () => {
+    const { user } = useAuth()
 
     const handleSubscribe = (plan) => {
-        toast.promise(new Promise((resolve) => setTimeout(resolve, 2000)), {
-            loading: 'Processando pagamento...',
-            success: `Assinatura ${plan} ativada com sucesso! (Mock)`,
-            error: 'Erro no pagamento'
-        })
+        let paymentLink = ''
+
+        // Select link based on plan
+        switch (plan) {
+            case 'Mensal':
+                paymentLink = import.meta.env.VITE_STRIPE_LINK_MONTHLY
+                break
+            case 'Anual':
+                paymentLink = import.meta.env.VITE_STRIPE_LINK_YEARLY
+                break
+            case 'Vitalício':
+                paymentLink = import.meta.env.VITE_STRIPE_LINK_LIFETIME
+                break
+            default:
+                toast.error('Plano inválido.')
+                return
+        }
+
+        if (!paymentLink || paymentLink.includes('test_')) {
+            toast.error('Link de pagamento não configurado no .env')
+            console.error('Missing VITE_STRIPE_LINK for:', plan)
+            return
+        }
+
+        if (!user) {
+            toast.error('Você precisa estar logado para assinar.')
+            return
+        }
+
+        // Redirect to Stripe with secure User ID reference
+        const finalUrl = `${paymentLink}?client_reference_id=${user.id}`
+        window.location.href = finalUrl
     }
 
     return (
