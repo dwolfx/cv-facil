@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { createBrowserRouter, RouterProvider, Navigate, Outlet } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import Landing from './pages/Landing'
@@ -26,44 +26,49 @@ const PrivateRoute = ({ children }) => {
     return <Navigate to="/login" />
   }
 
-  return children
+  return children || <Outlet />
 }
+
+// Layout wrapper to provide AuthContext and Toaster to all routes
+const RootLayout = () => {
+  return (
+    <AuthProvider>
+      <Toaster richColors position="top-center" />
+      <Outlet />
+    </AuthProvider>
+  )
+}
+
+const router = createBrowserRouter([
+  {
+    element: <RootLayout />,
+    children: [
+      { path: '/', element: <Landing /> },
+      { path: '/login', element: <Login /> },
+      { path: '/register', element: <Register /> },
+      {
+        path: '/dashboard',
+        element: <PrivateRoute><Dashboard /></PrivateRoute>
+      },
+      {
+        path: '/editor',
+        element: <PrivateRoute><Editor /></PrivateRoute>
+      },
+      {
+        path: '/settings',
+        element: <PrivateRoute><Settings /></PrivateRoute>
+      },
+      {
+        path: '/upgrade',
+        element: <PrivateRoute><Upgrade /></PrivateRoute>
+      }
+    ]
+  }
+])
 
 function App() {
   return (
-    <Router>
-      <AuthProvider>
-        <Toaster richColors position="top-center" />
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/" element={<Landing />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-
-          {/* Protected Routes */}
-          <Route path="/dashboard" element={
-            <PrivateRoute>
-              <Dashboard />
-            </PrivateRoute>
-          } />
-          <Route path="/editor" element={
-            <PrivateRoute>
-              <Editor />
-            </PrivateRoute>
-          } />
-          <Route path="/settings" element={
-            <PrivateRoute>
-              <Settings />
-            </PrivateRoute>
-          } />
-          <Route path="/upgrade" element={
-            <PrivateRoute>
-              <Upgrade />
-            </PrivateRoute>
-          } />
-        </Routes>
-      </AuthProvider>
-    </Router>
+    <RouterProvider router={router} />
   )
 }
 

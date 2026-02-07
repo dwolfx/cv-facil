@@ -12,6 +12,7 @@ import PlanWidget from '../../components/PlanWidget'
 import Header from '../../components/Header'
 import { supabase } from '../../services/supabaseClient'
 import { useAuth } from '../../contexts/AuthContext'
+import { useUserPlan } from '../../hooks/useUserPlan'
 
 const Dashboard = () => {
     const navigate = useNavigate()
@@ -19,7 +20,9 @@ const Dashboard = () => {
     const [resumes, setResumes] = useState([])
     const [loading, setLoading] = useState(true)
 
-    const planLimit = 2
+    // Use hook for limits
+    const { features } = useUserPlan(user)
+    const planLimit = features.maxResumes
 
     useEffect(() => {
         if (user) {

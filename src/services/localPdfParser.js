@@ -79,7 +79,7 @@ const parseTxt = async (file) => {
 
 const extractDataFromText = (text) => {
     // Normalize text (preserve lines for some parsing, but clean excessive spaces)
-    const normalizedText = text.replace(/\r\n/g, '\n').replace(/\t/g, ' ');
+    const normalizedText = text.replace(/\r\n/g, '\n').replace(/\t/g, ' ').replace(/\x00/g, ''); // Remove null bytes
     const lines = normalizedText.split('\n').filter(line => line.trim().length > 0);
     const cleanedGlobal = normalizedText.replace(/\s+/g, ' ').trim();
 
