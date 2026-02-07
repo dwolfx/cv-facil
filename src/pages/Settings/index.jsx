@@ -116,24 +116,50 @@ const Settings = () => {
     }
 
     const handleDeleteAccount = async () => {
-        if (!confirm('Tem certeza ABSOLUTA? Esta ação não pode ser desfeita.')) return
+        if (!confirm('Tem certeza ABSOLUTA? Esta ação exclui permanentemente sua conta e todos os dados.')) return
 
         setUpdating(true)
         try {
-            // 1. Delete all resumes
-            await supabase.from('resumes').delete().eq('user_id', user.id)
+            // 1. Delete all resumes (Client side cleanup)
+            const { error: resumeError } = await supabase.from('resumes').delete().eq('user_id', user.id)
+            if (resumeError) {
+                console.error('Resume delete error:', resumeError)
+                // Continue? Maybe profiles depends on resumes? Unlikely.
+            }
 
-            // 2. Reset plan to 'free' (Manual reset for testing)
-            // Note: Normally we can't delete auth user from client.
-            // But we can reset the state so it feels like new.
+            // 2. Delete profile (Avoid FK constraints)
+            const { error: profileError } = await supabase.from('profiles').delete().eq('id', user.id)
+            if (profileError) {
+                console.error('Profile delete error:', profileError)
+                throw new Error('Erro ao excluir perfil: ' + profileError.message)
+            }
 
+            // 3. Call Edge Function to delete Auth User
+            const { data, error } = await supabase.functions.invoke('delete-user')
+
+            // Check for network/invocation errors
+            if (error) {
+                let errorMessage = error.message
+                try {
+                    const body = await error.context.json()
+                    if (body.error) errorMessage = body.error
+                } catch (e) { /* ignore */ }
+                throw new Error(errorMessage)
+            }
+
+            // Check for logical errors returned by function (even if 200 OK)
+            if (data && data.error) {
+                throw new Error(data.error)
+            }
+
+            // 4. Sign out locally
             await supabase.auth.signOut()
             navigate('/login')
-            toast.success('Conta resetada com sucesso.')
+            toast.success('Conta excluída definitivamente.')
 
         } catch (error) {
-            console.error(error)
-            toast.error('Erro ao resetar conta.')
+            console.error('Account deletion error:', error)
+            toast.error(error.message)
         } finally {
             setUpdating(false)
         }

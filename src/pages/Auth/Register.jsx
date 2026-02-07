@@ -14,6 +14,18 @@ const Register = () => {
 
     const handleRegister = async (e) => {
         e.preventDefault()
+
+        // Strict Validation
+        if (!fullName.trim()) {
+            return toast.error('Por favor, digite seu nome completo.')
+        }
+        if (!email) {
+            return toast.error('O e-mail é obrigatório.')
+        }
+        if (!password || password.length < 6) {
+            return toast.error('A senha deve ter pelo menos 6 caracteres.')
+        }
+
         setLoading(true)
 
         try {

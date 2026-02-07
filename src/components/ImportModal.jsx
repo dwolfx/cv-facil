@@ -33,7 +33,6 @@ const ImportModal = ({ isOpen, onClose, onImport }) => {
 
     const handleFile = (file) => {
         // Here we would call the actual import logic
-        console.log("File imported:", file)
         onImport(file)
     }
 
