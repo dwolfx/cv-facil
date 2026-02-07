@@ -33,6 +33,13 @@ export const useResume = (user, resumeId) => {
     const [submitting, setSubmitting] = useState(false)
     const [strength, setStrength] = useState(0)
 
+    const skipNextFetch = React.useRef(false)
+
+    // Dirty Check
+    const isDirty = useMemo(() => {
+        return JSON.stringify(resumeData) !== JSON.stringify(lastSavedData)
+    }, [resumeData, lastSavedData])
+
     // Calculate Strength
     useEffect(() => {
         let score = 0
@@ -47,9 +54,26 @@ export const useResume = (user, resumeId) => {
         setStrength(Math.min(score, 100))
     }, [resumeData])
 
+    // Auto-Create on First Edit/Import
+    useEffect(() => {
+        // If we don't have an ID (new resume), and data has changed (isDirty), and we aren't already saving...
+        if (!resumeId && isDirty && !submitting) {
+            // Trigger immediate save to reserve the slot and create ID
+            handleSave(true)
+        }
+    }, [isDirty, resumeId, submitting]) // Dependencies need to be precise
+
     // Fetch Resume
     useEffect(() => {
         if (resumeId && user) {
+
+            // Optimization: If we just created this resume locally, don't re-fetch immediately
+            if (skipNextFetch.current) {
+                skipNextFetch.current = false
+                setLoading(false)
+                return
+            }
+
             setLoading(true)
             const fetchResume = async () => {
                 try {
@@ -86,15 +110,12 @@ export const useResume = (user, resumeId) => {
         }
     }, [resumeId, user, navigate])
 
-    // Dirty Check
-    const isDirty = useMemo(() => {
-        return JSON.stringify(resumeData) !== JSON.stringify(lastSavedData)
-    }, [resumeData, lastSavedData])
+
 
     // Navigation Blocker
     const blocker = useBlocker(
         ({ currentLocation, nextLocation }) =>
-            isDirty && currentLocation.pathname !== nextLocation.pathname
+            isDirty && currentLocation.pathname !== nextLocation.pathname && !!resumeId // Only block if saved at least once (has ID)
     )
 
     // Before Unload Warning
@@ -110,7 +131,7 @@ export const useResume = (user, resumeId) => {
     }, [isDirty])
 
     // Actions
-    const handleSave = async (andProceed = false) => {
+    const handleSave = async (andProceed = false, isAutoSave = false) => {
         if (!user) return
         setSubmitting(true)
 
@@ -137,12 +158,14 @@ export const useResume = (user, resumeId) => {
 
             if (error) throw error
 
-            toast.success('Currículo salvo com sucesso!')
+            if (!isAutoSave) toast.success('Currículo salvo com sucesso!')
             setLastSavedData(resumeData)
 
             if (andProceed && blocker.state === 'blocked') {
                 blocker.proceed()
             } else if (!resumeId && data && data[0]) {
+                // If we just created it, set flag to skip the next fetch (since we have the data)
+                skipNextFetch.current = true
                 navigate(`/editor?id=${data[0].id}`, { replace: true })
             }
         } catch (error) {

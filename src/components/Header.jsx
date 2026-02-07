@@ -2,13 +2,13 @@ import React from 'react'
 import PlanWidget from './PlanWidget'
 import UserDropdown from './UserDropdown'
 
-const Header = ({ title, subtitle, children, className = '', planCurrent = 1, planMax = 2 }) => {
+const Header = ({ title, subtitle, children, className = '', planCurrent = 0, planMax = 2 }) => {
     return (
         <header className={`flex items-center justify-between bg-white/80 backdrop-blur-md dark:bg-slate-900/80 px-4 md:px-8 h-16 md:h-20 border-b border-slate-200 dark:border-slate-800 shrink-0 z-20 relative transition-all duration-300 ${className}`}>
-            <div className="flex flex-col justify-center">
-                <h1 className="text-lg md:text-xl font-bold text-slate-800 dark:text-white leading-none">{title}</h1>
+            <div className="flex flex-col justify-center gap-0.5">
+                <h1 className="text-lg md:text-xl font-bold text-slate-800 dark:text-white leading-tight">{title}</h1>
                 {subtitle && (
-                    <p className="text-[10px] md:text-xs text-slate-500 hidden md:block mt-1">{subtitle}</p>
+                    <p className="text-[10px] md:text-xs text-slate-500 hidden md:block">{subtitle}</p>
                 )}
             </div>
 

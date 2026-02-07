@@ -4,10 +4,14 @@ import { AuthProvider, useAuth } from './contexts/AuthContext'
 import Landing from './pages/Landing'
 import Login from './pages/Auth/Login'
 import Register from './pages/Auth/Register'
+import ForgotPassword from './pages/Auth/ForgotPassword'
+import ResetPassword from './pages/Auth/ResetPassword'
 import Editor from './pages/Editor'
 import Dashboard from './pages/Dashboard'
 import Settings from './pages/Settings'
 import Upgrade from './pages/Upgrade'
+import Terms from './pages/Terms'
+import Contact from './pages/Contact'
 import { Loader2 } from 'lucide-react'
 
 // Private Route Component
@@ -65,6 +69,10 @@ const router = createBrowserRouter([
       { path: '/', element: <PublicRoute><Landing /></PublicRoute> },
       { path: '/login', element: <PublicRoute><Login /></PublicRoute> },
       { path: '/register', element: <PublicRoute><Register /></PublicRoute> },
+      { path: '/forgot-password', element: <PublicRoute><ForgotPassword /></PublicRoute> },
+      { path: '/reset-password', element: <ResetPassword /> },
+      { path: '/terms', element: <Terms /> },
+      { path: '/contact', element: <Contact /> },
       {
         path: '/dashboard',
         element: <PrivateRoute><Dashboard /></PrivateRoute>

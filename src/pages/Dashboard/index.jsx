@@ -101,7 +101,7 @@ const Dashboard = () => {
                 />
 
                 <main className="flex-1 overflow-y-auto p-4 md:p-10 z-10">
-                    <div className="max-w-6xl mx-auto">
+                    <div className="max-w-5xl mx-auto">
                         {/* Mobile Plan Widget (Visible only on mobile) */}
                         <div className="md:hidden mb-6">
                             <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex items-center justify-between">

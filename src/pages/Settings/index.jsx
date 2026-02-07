@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
-import { User, Lock, CreditCard, Save, Loader2 } from 'lucide-react'
+import { User, Lock, CreditCard, Save, Loader2, Eye, EyeOff } from 'lucide-react'
 import { toast } from 'sonner'
 import Sidebar from '../../components/Sidebar'
 import UserDropdown from '../../components/UserDropdown'
@@ -18,12 +18,14 @@ const Settings = () => {
 
     const [loading, setLoading] = useState(true)
     const [updating, setUpdating] = useState(false)
+    const [newPassword, setNewPassword] = useState('')
+    const [confirmNewPassword, setConfirmNewPassword] = useState('')
+    const [showNewPassword, setShowNewPassword] = useState(false)
+    const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false)
     const [userData, setUserData] = useState({
         full_name: '',
         email: '',
-        phone: '' // Note: Phone is not in profiles table yet, storing in local state or meta_data if needed, but for now just mock or add to table if I can.
-        // Actually, schema has 'full_name', 'plan_tier'. Phone is not there. I should add proper handling.
-        // For now, I'll just bind full_name. Email comes from auth.user.
+        phone: ''
     })
 
     useEffect(() => {
@@ -85,10 +87,10 @@ const Settings = () => {
 
     const handleUpdatePassword = async () => {
         const currentPassword = document.getElementById('current-password')?.value
-        const newPassword = document.getElementById('new-password')?.value
 
         if (!currentPassword) return toast.error('Digite a senha atual.')
-        if (!newPassword) return toast.error('Digite a nova senha.')
+        if (!newPassword || newPassword.length < 6) return toast.error('A nova senha deve ter pelo menos 6 caracteres.')
+        if (newPassword !== confirmNewPassword) return toast.error('As senhas não coincidem.')
 
         setUpdating(true)
         try {
@@ -106,7 +108,8 @@ const Settings = () => {
 
             toast.success('Senha atualizada com sucesso!')
             document.getElementById('current-password').value = ''
-            document.getElementById('new-password').value = ''
+            setNewPassword('')
+            setConfirmNewPassword('')
 
         } catch (error) {
             console.error(error)
@@ -205,12 +208,41 @@ const Settings = () => {
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Nova Senha</label>
-                                    <input
-                                        type="password"
-                                        id="new-password"
-                                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg"
-                                        placeholder="Nova senha"
-                                    />
+                                    <div className="relative">
+                                        <input
+                                            type={showNewPassword ? 'text' : 'password'}
+                                            value={newPassword}
+                                            onChange={(e) => setNewPassword(e.target.value)}
+                                            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg pr-10"
+                                            placeholder="Nova senha"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowNewPassword(!showNewPassword)}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                        >
+                                            {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                        </button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Confirmar Nova Senha</label>
+                                    <div className="relative">
+                                        <input
+                                            type={showConfirmNewPassword ? 'text' : 'password'}
+                                            value={confirmNewPassword}
+                                            onChange={(e) => setConfirmNewPassword(e.target.value)}
+                                            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg pr-10"
+                                            placeholder="Confirme a nova senha"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowConfirmNewPassword(!showConfirmNewPassword)}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                        >
+                                            {showConfirmNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                             <div className="mt-6 pt-6 border-t border-slate-100 flex justify-end">

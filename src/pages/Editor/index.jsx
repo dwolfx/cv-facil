@@ -16,10 +16,15 @@ import ResumePreview from './components/ResumePreview'
 // Styles
 import './Editor.css'
 
+import Sidebar from '../../components/Sidebar'
+
+import { supabase } from '../../services/supabaseClient'
+
 const Editor = () => {
     const { user } = useAuth()
     const [searchParams] = useSearchParams()
     const resumeId = searchParams.get('id')
+    const [resumeCount, setResumeCount] = useState(0)
 
     // Custom Hooks
     const {
@@ -39,6 +44,20 @@ const Editor = () => {
     } = useResume(user, resumeId)
 
     const { features: planFeatures } = useUserPlan(user)
+
+    // Fetch Resume Count
+    useEffect(() => {
+        if (!user) return
+        const fetchCount = async () => {
+            const { count, error } = await supabase
+                .from('resumes')
+                .select('*', { count: 'exact', head: true })
+                .eq('user_id', user.id)
+
+            if (!error) setResumeCount(count || 0)
+        }
+        fetchCount()
+    }, [user, submitting]) // Refetch when saving (creating new)
 
     // UI Local State
     const [activeSection, setActiveSection] = useState('personal')
@@ -71,78 +90,84 @@ const Editor = () => {
     }
 
     return (
-        <div className="h-screen w-full bg-slate-100 flex flex-col overflow-hidden font-sans">
-            <EditorHeader
-                planFeatures={planFeatures}
-                handleSave={handleSave}
-                handleExportPDF={handleExportPDF}
-                handleImportResume={handleImportResume}
-                submitting={submitting}
-                loading={loading}
-                isDirty={isDirty}
-            />
+        <div className="h-screen w-full bg-slate-100 flex flex-row overflow-hidden font-sans">
+            {/* Added Sidebar */}
+            <Sidebar />
 
-            <div className="flex-1 flex overflow-hidden relative">
+            <div className="flex-1 flex flex-col h-full overflow-hidden">
+                <EditorHeader
+                    planFeatures={planFeatures}
+                    resumeCount={resumeCount}
+                    handleSave={handleSave}
+                    handleExportPDF={handleExportPDF}
+                    handleImportResume={handleImportResume}
+                    submitting={submitting}
+                    loading={loading}
+                    isDirty={isDirty}
+                />
 
-                {/* LEFT SIDEBAR (FORM) */}
-                <aside className={`
-                    absolute md:relative z-20 w-full md:w-[450px] lg:w-[500px] h-full bg-white border-r border-gray-200 overflow-y-auto
-                    transition-transform duration-300 ease-in-out
-                    ${activeMobileTab === 'edit' ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
-                `}>
-                    <ResumeForm
-                        resumeData={resumeData}
-                        activeSection={activeSection}
-                        toggleSection={toggleSection}
-                        updateField={updateField}
-                        updateArrayItem={updateArrayItem}
-                        addArrayItem={addArrayItem}
-                        removeArrayItem={removeArrayItem}
-                        strength={strength}
-                    />
-                </aside>
+                <div className="flex-1 flex overflow-hidden relative">
 
-                {/* RIGHT SIDE (PREVIEW) */}
-                <main className={`
-                    flex-1 h-full bg-slate-100 overflow-y-auto overflow-x-hidden relative
-                    ${activeMobileTab === 'preview' ? 'block' : 'hidden md:block'}
-                `}>
-                    <div className="min-h-full p-4 md:p-12 flex justify-center items-start">
-                        <div
-                            style={{
-                                transform: `scale(${zoom / 100})`,
-                                transformOrigin: 'top center',
-                                transition: 'transform 0.2s ease-out'
-                            }}
-                            className="bg-white shadow-xl min-h-[297mm]"
-                        >
-                            <ResumePreview resumeData={resumeData} />
+                    {/* LEFT SIDEBAR (FORM) */}
+                    <aside className={`
+                        absolute md:relative z-20 w-full md:w-[450px] lg:w-[500px] h-full bg-white border-r border-gray-200 overflow-y-auto
+                        transition-transform duration-300 ease-in-out
+                        ${activeMobileTab === 'edit' ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+                    `}>
+                        <ResumeForm
+                            resumeData={resumeData}
+                            activeSection={activeSection}
+                            toggleSection={toggleSection}
+                            updateField={updateField}
+                            updateArrayItem={updateArrayItem}
+                            addArrayItem={addArrayItem}
+                            removeArrayItem={removeArrayItem}
+                            strength={strength}
+                        />
+                    </aside>
+
+                    {/* RIGHT SIDE (PREVIEW) */}
+                    <main className={`
+                        flex-1 h-full bg-slate-100 overflow-y-auto overflow-x-hidden relative
+                        ${activeMobileTab === 'preview' ? 'block' : 'hidden md:block'}
+                    `}>
+                        <div className="min-h-full p-4 md:p-12 flex justify-center items-start">
+                            <div
+                                style={{
+                                    transform: `scale(${zoom / 100})`,
+                                    transformOrigin: 'top center',
+                                    transition: 'transform 0.2s ease-out'
+                                }}
+                                className="bg-white shadow-xl min-h-[297mm]"
+                            >
+                                <ResumePreview resumeData={resumeData} />
+                            </div>
                         </div>
-                    </div>
-                </main>
+                    </main>
 
-                {/* MOBILE TABS (Bottom Bar) */}
-                <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-md shadow-2xl rounded-full p-1.5 flex gap-1 border border-gray-200 z-50">
-                    <button
-                        onClick={() => setActiveMobileTab('edit')}
-                        className={`px-6 py-2.5 rounded-full text-sm font-bold transition-all ${activeMobileTab === 'edit'
+                    {/* MOBILE TABS (Bottom Bar) */}
+                    <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-md shadow-2xl rounded-full p-1.5 flex gap-1 border border-gray-200 z-50">
+                        <button
+                            onClick={() => setActiveMobileTab('edit')}
+                            className={`px-6 py-2.5 rounded-full text-sm font-bold transition-all ${activeMobileTab === 'edit'
                                 ? 'bg-slate-900 text-white shadow-lg'
                                 : 'text-slate-500 hover:bg-slate-100'
-                            }`}
-                    >
-                        Editar
-                    </button>
-                    <button
-                        onClick={() => setActiveMobileTab('preview')}
-                        className={`px-6 py-2.5 rounded-full text-sm font-bold transition-all ${activeMobileTab === 'preview'
+                                }`}
+                        >
+                            Editar
+                        </button>
+                        <button
+                            onClick={() => setActiveMobileTab('preview')}
+                            className={`px-6 py-2.5 rounded-full text-sm font-bold transition-all ${activeMobileTab === 'preview'
                                 ? 'bg-orange-500 text-white shadow-lg shadow-orange-200'
                                 : 'text-slate-500 hover:bg-slate-100'
-                            }`}
-                    >
-                        Visualizar
-                    </button>
-                </div>
+                                }`}
+                        >
+                            Visualizar
+                        </button>
+                    </div>
 
+                </div>
             </div>
 
             {/* Unsaved Changes Modal */}

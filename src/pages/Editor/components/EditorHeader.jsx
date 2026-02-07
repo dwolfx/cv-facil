@@ -6,6 +6,7 @@ import PlanWidget from '../../../components/PlanWidget'
 
 const EditorHeader = ({
     planFeatures,
+    resumeCount = 0,
     handleSave,
     handleExportPDF,
     handleImportResume,
@@ -33,7 +34,7 @@ const EditorHeader = ({
             </div>
 
             <div className="flex items-center gap-3">
-                <PlanWidget planCurrent={1} /> {/* Simplified for now, can use planFeatures later */}
+                <PlanWidget current={resumeCount} max={planFeatures?.maxResumes || 2} />
 
                 <input
                     type="file"
