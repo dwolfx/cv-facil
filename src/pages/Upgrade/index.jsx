@@ -154,7 +154,7 @@ const Upgrade = () => {
                                         >
                                             Anual
                                             {/* -17% Tag */}
-                                            {billingCycle !== 'yearly' && <span className="absolute -top-3 -right-2 bg-green-500 text-white text-[9px] px-1.5 py-0.5 rounded-full shadow-sm font-bold">-17%</span>}
+                                            <span className="absolute -top-3 -right-2 bg-green-500 text-white text-[9px] px-1.5 py-0.5 rounded-full shadow-sm font-bold">-17%</span>
                                         </button>
                                         <button
                                             onClick={() => setBillingCycle('lifetime')}

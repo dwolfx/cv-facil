@@ -4,20 +4,22 @@ import { useSearchParams, useNavigate } from 'react-router-dom'
 import { User, Lock, CreditCard, Save, Loader2, Eye, EyeOff } from 'lucide-react'
 import { toast } from 'sonner'
 import Sidebar from '../../components/Sidebar'
-import UserDropdown from '../../components/UserDropdown'
-import PlanWidget from '../../components/PlanWidget'
 import Header from '../../components/Header'
 import { supabase } from '../../services/supabaseClient'
 import { useAuth } from '../../contexts/AuthContext'
+import { useUserPlan } from '../../hooks/useUserPlan'
 
 const Settings = () => {
     const navigate = useNavigate()
     const { user } = useAuth()
+    const { features, plan } = useUserPlan(user)
     const [searchParams] = useSearchParams()
     const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'profile')
 
     const [loading, setLoading] = useState(true)
     const [updating, setUpdating] = useState(false)
+    const [resumeCount, setResumeCount] = useState(0)
+
     const [newPassword, setNewPassword] = useState('')
     const [confirmNewPassword, setConfirmNewPassword] = useState('')
     const [showNewPassword, setShowNewPassword] = useState(false)
@@ -31,9 +33,22 @@ const Settings = () => {
     useEffect(() => {
         if (user) {
             fetchProfile()
+            fetchResumeCount()
             setUserData(prev => ({ ...prev, email: user.email }))
         }
     }, [user])
+
+    const fetchResumeCount = async () => {
+        try {
+            const { count, error } = await supabase
+                .from('resumes')
+                .select('*', { count: 'exact', head: true })
+
+            if (!error) setResumeCount(count || 0)
+        } catch (error) {
+            console.error(error)
+        }
+    }
 
     const fetchProfile = async () => {
         try {
@@ -53,7 +68,6 @@ const Settings = () => {
             }
         } catch (error) {
             console.error('Error fetching profile:', error)
-            // Don't toast error here to avoid annoying popups if profile is missing (trigger should handle creation though)
         } finally {
             setLoading(false)
         }
@@ -72,10 +86,6 @@ const Settings = () => {
 
             if (error) throw error
             toast.success('Perfil atualizado com sucesso!')
-
-            // Optionally update auth metadata if needed
-            // await supabase.auth.updateUser({ data: { full_name: userData.full_name } })
-
         } catch (error) {
             console.error('Error updating profile:', error)
             toast.error('Erro ao atualizar perfil.')
@@ -94,7 +104,6 @@ const Settings = () => {
 
         setUpdating(true)
         try {
-            // 1. Verify current password
             const { error: signInError } = await supabase.auth.signInWithPassword({
                 email: user.email,
                 password: currentPassword
@@ -102,7 +111,6 @@ const Settings = () => {
 
             if (signInError) throw new Error('Senha atual incorreta.')
 
-            // 2. Update to new password
             const { error } = await supabase.auth.updateUser({ password: newPassword })
             if (error) throw error
 
@@ -124,7 +132,6 @@ const Settings = () => {
 
         setUpdating(true)
         try {
-            // Call Database Function (RPC) to delete everything
             const { error } = await supabase.rpc('delete_own_user')
 
             if (error) {
@@ -132,7 +139,6 @@ const Settings = () => {
                 throw new Error('Erro ao excluir conta: ' + error.message)
             }
 
-            // Sign out locally
             await supabase.auth.signOut()
             navigate('/login')
             toast.success('Conta excluída definitivamente.')
@@ -282,20 +288,30 @@ const Settings = () => {
                             </div>
                             <div className="relative z-10 flex justify-between items-start">
                                 <div>
-                                    <span className="inline-block px-3 py-1 bg-orange-100 text-[var(--primary)] text-[10px] font-bold uppercase tracking-wider rounded-full mb-3">Plano Atual</span>
-                                    <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-1">Plano Gratuito</h2>
-                                    <p className="text-slate-500 text-sm">Ideal para quem está começando.</p>
+                                    <span className={`inline-block px-3 py-1 ${features.isPremium ? 'bg-emerald-100 text-emerald-800' : 'bg-orange-100 text-[var(--primary)]'} text-[10px] font-bold uppercase tracking-wider rounded-full mb-3`}>Plano Atual</span>
+                                    <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-1">
+                                        {features.isPremium ? 'Plano PRO 🚀' : 'Plano Gratuito'}
+                                    </h2>
+                                    <p className="text-slate-500 text-sm">
+                                        {features.isPremium ? 'Você tem superpoderes desbloqueados.' : 'Ideal para quem está começando.'}
+                                    </p>
                                 </div>
                                 <div className="text-right">
-                                    <div className="text-3xl font-bold text-slate-800">R$ 0</div>
-                                    <div className="text-xs text-slate-400">/ mês</div>
+                                    <div className="text-3xl font-bold text-slate-800">
+                                        {plan === 'monthly' ? 'R$ 5' : plan === 'yearly' ? 'R$ 50' : plan === 'lifetime' ? 'R$ 150' : 'R$ 0'}
+                                    </div>
+                                    <div className="text-xs text-slate-400">
+                                        {plan === 'lifetime' ? '/ único' : plan === 'free' ? '/ mês' : '/ ano'}
+                                    </div>
                                 </div>
                             </div>
 
                             <div className="mt-6 grid grid-cols-2 gap-4">
                                 <div className="p-3 bg-slate-50 rounded-lg border border-slate-100">
                                     <div className="text-xs text-slate-500 mb-1">Currículos</div>
-                                    <div className="font-bold text-slate-800">1 de 2</div>
+                                    <div className="font-bold text-slate-800">
+                                        {resumeCount} de {features.isPremium ? 'Ilimitado' : features.maxResumes}
+                                    </div>
                                 </div>
                                 <div className="p-3 bg-slate-50 rounded-lg border border-slate-100">
                                     <div className="text-xs text-slate-500 mb-1">Downloads PDF</div>
@@ -304,16 +320,24 @@ const Settings = () => {
                             </div>
                         </div>
 
-                        {/* Upgrade Banner */}
-                        <div className="bg-gradient-to-r from-[var(--primary)] to-orange-600 rounded-xl p-8 text-white relative overflow-hidden shadow-lg shadow-orange-200">
-                            <div className="relative z-10">
-                                <h3 className="text-xl font-bold mb-2">Faça Upgrade para o Premium 🚀</h3>
-                                <p className="text-orange-100 mb-6 max-w-sm">Crie currículos ilimitados, acesse templates exclusivos e use nossa IA para gerar textos incríveis.</p>
-                                <button onClick={() => navigate('/upgrade')} className="bg-white text-[var(--primary)] px-6 py-2.5 rounded-lg font-bold text-sm hover:bg-orange-50 transition-colors shadow-md">
-                                    Ver Planos e Preços
-                                </button>
+                        {/* Upgrade Banner - Show only if not lifetime */}
+                        {plan !== 'lifetime' && (
+                            <div className="bg-gradient-to-r from-[var(--primary)] to-orange-600 rounded-xl p-8 text-white relative overflow-hidden shadow-lg shadow-orange-200">
+                                <div className="relative z-10">
+                                    <h3 className="text-xl font-bold mb-2">
+                                        {features.isPremium ? 'Gerenciar Assinatura ⚙️' : 'Faça Upgrade para o Premium 🚀'}
+                                    </h3>
+                                    <p className="text-orange-100 mb-6 max-w-sm">
+                                        {features.isPremium
+                                            ? 'Acesse o portal da Stripe para gerenciar pagamentos e faturas.'
+                                            : 'Crie currículos ilimitados, acesse templates exclusivos e use nossa IA para gerar textos incríveis.'}
+                                    </p>
+                                    <button onClick={() => navigate('/upgrade')} className="bg-white text-[var(--primary)] px-6 py-2.5 rounded-lg font-bold text-sm hover:bg-orange-50 transition-colors shadow-md">
+                                        {features.isPremium ? 'Mudar Plano' : 'Ver Planos e Preços'}
+                                    </button>
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </div>
                 )
             default:
@@ -329,6 +353,9 @@ const Settings = () => {
                 <Header
                     title="Configurações"
                     subtitle="Gerencie seus dados e assinatura."
+                    planCurrent={resumeCount}
+                    planMax={features.maxResumes}
+                    isPremium={features.isPremium}
                 />
 
                 <main className="flex-1 overflow-y-auto p-4 md:p-8">

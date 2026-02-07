@@ -213,7 +213,7 @@ const Landing = () => {
                                     style={{ flex: 1, padding: '8px 4px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 'bold', border: 'none', cursor: 'pointer', background: billingCycle === 'yearly' ? 'white' : 'transparent', color: billingCycle === 'yearly' ? 'var(--primary)' : '#ffedd5', transition: 'all 0.2s', position: 'relative' }}
                                 >
                                     Anual
-                                    {billingCycle !== 'yearly' && <span style={{ position: 'absolute', top: -10, right: -5, fontSize: '0.6rem', background: '#22c55e', color: 'white', padding: '1px 5px', borderRadius: '10px', fontWeight: 'bold' }}>-17%</span>}
+                                    <span style={{ position: 'absolute', top: -10, right: -5, fontSize: '0.6rem', background: '#22c55e', color: 'white', padding: '1px 5px', borderRadius: '10px', fontWeight: 'bold' }}>-17%</span>
                                 </button>
                                 <button
                                     onClick={() => setBillingCycle('lifetime')}
@@ -229,6 +229,10 @@ const Landing = () => {
                         </div>
 
                     </div>
+
+                    <p style={{ textAlign: 'center', fontSize: '0.75rem', color: '#94a3b8', marginTop: '2rem' }}>
+                        Pagamento seguro processado por Stripe. Cancele quando quiser.
+                    </p>
                 </section>
 
                 {/* Testimonials Section */}

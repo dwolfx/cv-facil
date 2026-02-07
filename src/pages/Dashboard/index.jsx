@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import {
-    ChevronDown, PlusCircle, MoreVertical, Edit2, Trash2, Clock, CheckCircle, Loader2
+    ChevronDown, PlusCircle, MoreVertical, Edit2, Trash2, Clock, CheckCircle, Loader2, Download
 } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -13,6 +13,7 @@ import Header from '../../components/Header'
 import { supabase } from '../../services/supabaseClient'
 import { useAuth } from '../../contexts/AuthContext'
 import { useUserPlan } from '../../hooks/useUserPlan'
+import { generateResumePDF } from '../../utils/pdfGenerator'
 
 const Dashboard = () => {
     const navigate = useNavigate()
@@ -23,6 +24,95 @@ const Dashboard = () => {
     // Use hook for limits
     const { features } = useUserPlan(user)
     const planLimit = features.maxResumes
+
+    const [openMenuId, setOpenMenuId] = useState(null)
+    const [renamingId, setRenamingId] = useState(null)
+    const [tempTitle, setTempTitle] = useState('')
+
+    const handleDownload = (resume) => {
+        if (!resume.content) return toast.error('Conteúdo vazio ou inválido.')
+        try {
+            toast.promise(
+                async () => generateResumePDF(resume.content),
+                {
+                    loading: 'Gerando PDF...',
+                    success: 'Download iniciado!',
+                    error: 'Erro ao gerar PDF.'
+                }
+            )
+        } catch (error) {
+            console.error(error)
+        }
+    }
+
+    // Close menu on click outside
+    useEffect(() => {
+        const handleClickOutside = () => setOpenMenuId(null)
+        window.addEventListener('click', handleClickOutside)
+        return () => window.removeEventListener('click', handleClickOutside)
+    }, [])
+
+    const handleMenuClick = (e, id) => {
+        e.stopPropagation()
+        setOpenMenuId(openMenuId === id ? null : id)
+    }
+
+    const startRenaming = (e, resume) => {
+        e.stopPropagation()
+        setRenamingId(resume.id)
+        setTempTitle(resume.title || 'Sem Título')
+        setOpenMenuId(null)
+    }
+
+    const cancelRenaming = () => {
+        setRenamingId(null)
+        setTempTitle('')
+    }
+
+    const saveRename = async (id) => {
+        if (!tempTitle.trim()) return toast.error('O título não pode ser vazio.')
+
+        try {
+            const { error } = await supabase
+                .from('resumes')
+                .update({ title: tempTitle, updated_at: new Date() })
+                .eq('id', id)
+
+            if (error) throw error
+
+            setResumes(prev => prev.map(r => r.id === id ? { ...r, title: tempTitle, updated_at: new Date() } : r))
+            toast.success('Renomeado com sucesso!')
+            setRenamingId(null)
+        } catch (error) {
+            console.error(error)
+            toast.error('Erro ao renomear.')
+        }
+    }
+
+    const handleDelete = async (id) => {
+        if (!confirm('Tem certeza que deseja excluir este currículo?')) return
+
+        try {
+            const { error } = await supabase
+                .from('resumes')
+                .delete()
+                .eq('id', id)
+
+            if (error) throw error
+
+            setResumes(prev => prev.filter(r => r.id !== id))
+            toast.success('Currículo excluído com sucesso.')
+        } catch (error) {
+            console.error('Error deleting resume:', error)
+            toast.error('Erro ao excluir currículo.')
+        }
+    }
+
+    // Format Date Helper
+    const formatDate = (dateString) => {
+        if (!dateString) return ''
+        return new Date(dateString).toLocaleDateString('pt-BR')
+    }
 
     useEffect(() => {
         if (user) {
@@ -57,30 +147,9 @@ const Dashboard = () => {
         navigate('/editor')
     }
 
-    const handleDelete = async (id) => {
-        if (!confirm('Tem certeza que deseja excluir este currículo?')) return
 
-        try {
-            const { error } = await supabase
-                .from('resumes')
-                .delete()
-                .eq('id', id)
 
-            if (error) throw error
 
-            setResumes(prev => prev.filter(r => r.id !== id))
-            toast.success('Currículo excluído com sucesso.')
-        } catch (error) {
-            console.error('Error deleting resume:', error)
-            toast.error('Erro ao excluir currículo.')
-        }
-    }
-
-    // Format Date Helper
-    const formatDate = (dateString) => {
-        if (!dateString) return ''
-        return new Date(dateString).toLocaleDateString('pt-BR')
-    }
 
     return (
         <div className="bg-[#f8f9fa] dark:bg-slate-900 font-sans text-slate-900 dark:text-slate-100 h-screen flex flex-row overflow-hidden pb-24 md:pb-0">
@@ -94,10 +163,13 @@ const Dashboard = () => {
                     <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-200/10 rounded-full blur-[100px]" />
                 </div>
 
+
+
                 <Header
                     title="Meus Currículos"
                     subtitle="Gerencie suas versões e crie novos documentos."
                     planCurrent={resumes.length}
+                    isPremium={features.isPremium}
                 />
 
                 <main className="flex-1 overflow-y-auto p-4 md:p-10 z-10">
@@ -106,7 +178,7 @@ const Dashboard = () => {
                         <div className="md:hidden mb-6">
                             <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex items-center justify-between">
                                 <span className="text-xs font-bold text-slate-600">Seu Plano</span>
-                                <PlanWidget current={resumes.length} max={2} />
+                                <PlanWidget current={resumes.length} max={2} isPremium={features.isPremium} />
                             </div>
                         </div>
 
@@ -143,18 +215,62 @@ const Dashboard = () => {
                                                     <div className="h-2 w-full bg-slate-100 rounded"></div>
                                                 </div>
                                             </div>
-                                            {/* Actions Overlay */}
-                                            <div className="absolute top-3 right-3 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <button className="p-2 bg-white rounded-full shadow-md text-slate-600 hover:text-blue-600 hover:bg-blue-50 transition-colors">
-                                                    <MoreVertical size={16} />
-                                                </button>
+                                            {/* Actions Overlay / Dropdown */}
+                                            <div className="absolute top-3 right-3 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                                                <div className="relative">
+                                                    <button
+                                                        onClick={(e) => handleMenuClick(e, resume.id)}
+                                                        className="p-2 bg-white rounded-full shadow-md text-slate-600 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                                                    >
+                                                        <MoreVertical size={16} />
+                                                    </button>
+
+                                                    {openMenuId === resume.id && (
+                                                        <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-slate-200 rounded-lg shadow-xl overflow-hidden animate-in fade-in zoom-in-95 z-50 flex flex-col">
+                                                            <Link
+                                                                to={`/editor?id=${resume.id}`}
+                                                                className="w-full text-left px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2 border-b border-slate-100"
+                                                            >
+                                                                <Edit2 size={14} /> Editar
+                                                            </Link>
+                                                            <button
+                                                                onClick={(e) => startRenaming(e, resume)}
+                                                                className="w-full text-left px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                                                            >
+                                                                <Edit2 size={14} className="opacity-0" /> {/* Spacer/Icon reused for consistency or use another icon like Tag */}
+                                                                Renomear
+                                                            </button>
+                                                            <button
+                                                                onClick={(e) => { e.stopPropagation(); handleDelete(resume.id); }}
+                                                                className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 border-t border-slate-100"
+                                                            >
+                                                                <Trash2 size={14} /> Excluir
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
 
                                         {/* Info Area */}
                                         <div className="flex-1 p-4 md:p-5 flex flex-col justify-between relative bg-white dark:bg-slate-900 z-10">
                                             <div>
-                                                <h3 className="font-bold text-slate-800 dark:text-white text-base mb-1 truncate" title={resume.title}>{resume.title || 'Sem Título'}</h3>
+                                                {renamingId === resume.id ? (
+                                                    <div className="mb-1 flex items-center gap-1">
+                                                        <input
+                                                            type="text"
+                                                            value={tempTitle}
+                                                            onChange={(e) => setTempTitle(e.target.value)}
+                                                            className="w-full text-sm font-bold border rounded px-1 py-0.5 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                                            autoFocus
+                                                            onKeyDown={(e) => e.key === 'Enter' && saveRename(resume.id)}
+                                                        />
+                                                        <button onClick={() => saveRename(resume.id)} className="text-green-600 hover:bg-green-50 p-1 rounded"><CheckCircle size={14} /></button>
+                                                        <button onClick={cancelRenaming} className="text-red-500 hover:bg-red-50 p-1 rounded"><Trash2 size={14} /></button>
+                                                    </div>
+                                                ) : (
+                                                    <h3 className="font-bold text-slate-800 dark:text-white text-base mb-1 truncate" title={resume.title}>{resume.title || 'Sem Título'}</h3>
+                                                )}
                                                 <div className="flex items-center gap-2 text-[10px] md:text-xs text-slate-400 mb-3">
                                                     <Clock size={12} />
                                                     <span>Atualizado em {formatDate(resume.updated_at)}</span>
@@ -174,8 +290,17 @@ const Dashboard = () => {
                                                     <Edit2 size={14} /> Editar
                                                 </Link>
                                                 <button
+                                                    onClick={() => handleDownload(resume)}
+                                                    className="h-8 md:h-9 flex items-center justify-center px-3 gap-2 bg-orange-50 text-orange-600 hover:text-orange-700 hover:bg-orange-100 rounded-lg transition-colors border border-orange-200 hover:border-orange-300 shadow-sm font-bold"
+                                                    title="Baixar PDF"
+                                                >
+                                                    <Download size={14} />
+                                                    <span className="text-[10px] hidden xl:inline">PDF</span>
+                                                </button>
+                                                <button
                                                     onClick={() => handleDelete(resume.id)}
                                                     className="h-8 w-8 md:h-9 md:w-9 flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-100"
+                                                    title="Excluir"
                                                 >
                                                     <Trash2 size={16} />
                                                 </button>
@@ -187,6 +312,7 @@ const Dashboard = () => {
                         )}
                     </div>
                 </main>
+
             </div>
         </div>
     )
