@@ -1,5 +1,5 @@
 import React from 'react'
-import { User, ChevronDown, Mail, Phone, Globe, PlusCircle, Trash2 } from 'lucide-react'
+import { User, ChevronDown, Mail, Phone, Globe, PlusCircle, Trash2, Linkedin, Youtube, Github } from 'lucide-react'
 
 const PersonalInfoForm = ({ resumeData, activeSection, toggleSection, updateField, handleLocationChange }) => {
 
@@ -80,6 +80,50 @@ const PersonalInfoForm = ({ resumeData, activeSection, toggleSection, updateFiel
                                 className="w-full pl-9 p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-200 focus:border-orange-400 outline-none transition-all"
                                 placeholder="Brasileiro"
                             />
+                        </div>
+                    </div>
+
+                    {/* Social Media Section */}
+                    <div className="pt-2 space-y-3">
+                        <label className="text-xs font-bold text-slate-500 uppercase border-b border-gray-100 pb-1 block">Redes Sociais & Links</label>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div className="relative">
+                                <Linkedin size={16} className="absolute left-3 top-2.5 text-slate-400" />
+                                <input
+                                    value={resumeData.personalInfo.linkedin || ''}
+                                    onChange={(e) => handleChange('linkedin', e.target.value)}
+                                    className="w-full pl-9 p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-200 focus:border-orange-400 outline-none transition-all"
+                                    placeholder="LinkedIn URL"
+                                />
+                            </div>
+                            <div className="relative">
+                                <Globe size={16} className="absolute left-3 top-2.5 text-slate-400" />
+                                <input
+                                    value={resumeData.personalInfo.portfolio || ''}
+                                    onChange={(e) => handleChange('portfolio', e.target.value)}
+                                    className="w-full pl-9 p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-200 focus:border-orange-400 outline-none transition-all"
+                                    placeholder="Portfólio / Site"
+                                />
+                            </div>
+                            <div className="relative">
+                                <Github size={16} className="absolute left-3 top-2.5 text-slate-400" />
+                                <input
+                                    value={resumeData.personalInfo.github || ''}
+                                    onChange={(e) => handleChange('github', e.target.value)}
+                                    className="w-full pl-9 p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-200 focus:border-orange-400 outline-none transition-all"
+                                    placeholder="GitHub (User ou URL)"
+                                />
+                            </div>
+                            <div className="relative">
+                                <Youtube size={16} className="absolute left-3 top-2.5 text-slate-400" />
+                                <input
+                                    value={resumeData.personalInfo.youtube || ''}
+                                    onChange={(e) => handleChange('youtube', e.target.value)}
+                                    className="w-full pl-9 p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-200 focus:border-orange-400 outline-none transition-all"
+                                    placeholder="YouTube / Outro"
+                                />
+                            </div>
                         </div>
                     </div>
 

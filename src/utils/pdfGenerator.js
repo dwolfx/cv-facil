@@ -14,6 +14,28 @@ export const generateResumePDF = (resumeData) => {
         }
     };
 
+    // Helper: Date Format
+    const formatDate = (dateString, isCurrent) => {
+        if (isCurrent) return 'Presente';
+        if (!dateString) return '';
+
+        const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+
+        // Handle YYYY-MM (ISO)
+        if (dateString.includes('-')) {
+            const [year, month] = dateString.split('-');
+            if (month && months[parseInt(month) - 1]) return `${months[parseInt(month) - 1]}/${year}`;
+            return dateString;
+        }
+
+        // Handle MM/YYYY (Legacy)
+        if (dateString.includes('/')) {
+            return dateString
+        }
+
+        return dateString
+    }
+
     // Helper to draw section title
     const drawSectionTitle = (title) => {
         checkPageBreak(15);
@@ -24,7 +46,7 @@ export const generateResumePDF = (resumeData) => {
         y += 2;
         doc.setDrawColor(229, 231, 235); // gray-200
         doc.line(margin, y, margin + contentWidth, y);
-        y += 8;
+        y += 6;
     };
 
     // 1. Header
@@ -41,10 +63,9 @@ export const generateResumePDF = (resumeData) => {
     doc.setTextColor(69, 96, 181); // #4560b5
     const role = resumeData.personalInfo.role || "Cargo";
     doc.text(role, margin, y);
-    y += 15;
+    y += 10;
 
-    // 2. Personal Info (Left column empty logic from design? No, let's just list them)
-    // Design has labels on left (140px ~ 40mm) and content on right.
+    // 2. Personal Info 
     const labelX = margin;
     const contentX = margin + 45; // 45mm offset
 
@@ -59,7 +80,7 @@ export const generateResumePDF = (resumeData) => {
         doc.setFont("helvetica", "normal");
         doc.setTextColor(71, 85, 105); // slate-600
         doc.text(String(value), contentX, y);
-        y += 6;
+        y += 5;
     };
 
     drawSectionTitle("Dados Pessoais");
@@ -72,20 +93,16 @@ export const generateResumePDF = (resumeData) => {
     }
     if (resumeData.personalInfo.linkedin) drawField("LinkedIn:", resumeData.personalInfo.linkedin);
     if (resumeData.personalInfo.portfolio) drawField("Portfólio:", resumeData.personalInfo.portfolio);
+    if (resumeData.personalInfo.github) drawField("GitHub:", resumeData.personalInfo.github);
+    if (resumeData.personalInfo.youtube) drawField("YouTube:", resumeData.personalInfo.youtube);
 
-    y += 5;
+    y += 4;
 
     // 3. Summary
     if (resumeData.personalInfo.summary) {
-        drawSectionTitle("Sobre Mim");
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(10);
-        doc.setTextColor(71, 85, 105);
-
-        const summaryLines = doc.splitTextToSize(resumeData.personalInfo.summary.replace(/<[^>]*>?/gm, ''), contentWidth - 45); // Strip HTML for simple PDF text
-        checkPageBreak(summaryLines.length * 5);
-        doc.text(summaryLines, contentX, y);
-        y += (summaryLines.length * 5) + 10;
+        drawSectionTitle("Objetivo");
+        y = drawRichText(resumeData.personalInfo.summary, contentX, y, contentWidth - 45, 10, [71, 85, 105]);
+        y += 5;
     }
 
     // 4. Experience
@@ -94,9 +111,9 @@ export const generateResumePDF = (resumeData) => {
 
         resumeData.experience.forEach(exp => {
             // Date & Location (Left)
-            const dateRange = `${exp.startDate || ''} - ${exp.isCurrent ? 'Presente' : (exp.endDate || '')}`;
+            const dateRange = `${formatDate(exp.startDate)} - ${formatDate(exp.endDate, exp.isCurrent)}`;
 
-            checkPageBreak(20); // Check enough for header
+            checkPageBreak(20);
 
             // Left Column
             doc.setFont("helvetica", "bold");
@@ -106,7 +123,7 @@ export const generateResumePDF = (resumeData) => {
 
             doc.setFont("helvetica", "italic");
             doc.setFontSize(9);
-            doc.setTextColor(148, 163, 184); // slate-400
+            doc.setTextColor(148, 163, 184);
             doc.text(dateRange, labelX, y + 5);
 
             // Right Column
@@ -120,21 +137,17 @@ export const generateResumePDF = (resumeData) => {
             doc.setTextColor(100, 116, 139); // slate-500
             doc.text(exp.company || 'Empresa', contentX, y + 5);
 
-            y += 12;
+            y += 10;
+
+            y += 2; // Extra gap between company and description
 
             // Description
             if (exp.description) {
-                doc.setFont("helvetica", "normal");
-                doc.setFontSize(10);
-                doc.setTextColor(71, 85, 105);
-                const descLines = doc.splitTextToSize(exp.description.replace(/<[^>]*>?/gm, ''), contentWidth - 45);
-                checkPageBreak(descLines.length * 5);
-                doc.text(descLines, contentX, y);
-                y += (descLines.length * 5);
+                y = drawRichText(exp.description, contentX, y, contentWidth - 45, 10, [71, 85, 105]);
             }
-            y += 8; // Spacing between items
+            y += 6;
         });
-        y += 5;
+        y += 4;
     }
 
     // 5. Education
@@ -142,34 +155,34 @@ export const generateResumePDF = (resumeData) => {
         drawSectionTitle("Educação");
 
         resumeData.education.forEach(edu => {
-            const dateRange = `${edu.startDate || ''} - ${edu.isCurrent ? 'Presente' : (edu.endDate || '')}`;
+            const dateRange = `${formatDate(edu.startDate)} - ${formatDate(edu.endDate, edu.isCurrent)}`;
             checkPageBreak(15);
 
             // Left Column (Meta)
             doc.setFont("helvetica", "bold");
             doc.setFontSize(9);
-            doc.setTextColor(69, 96, 181); // #4560b5
+            doc.setTextColor(69, 96, 181);
             doc.text(edu.location || '', labelX, y);
 
             doc.setFont("helvetica", "italic");
             doc.setFontSize(9);
-            doc.setTextColor(148, 163, 184); // slate-400
+            doc.setTextColor(148, 163, 184);
             doc.text(dateRange, labelX, y + 5);
 
             // Right Column (Content)
             doc.setFont("helvetica", "bold");
             doc.setFontSize(11);
-            doc.setTextColor(30, 58, 138); // #1e3a8a
+            doc.setTextColor(30, 58, 138);
             doc.text(edu.degree || 'Curso', contentX, y);
 
             doc.setFont("helvetica", "normal");
             doc.setFontSize(10);
-            doc.setTextColor(100, 116, 139); // slate-500
+            doc.setTextColor(100, 116, 139);
             doc.text(edu.school || 'Instituição', contentX, y + 5);
 
-            y += 12;
+            y += 10;
         });
-        y += 5;
+        y += 4;
     }
 
     // 6. Languages (Left) & Skills (Right) Split Section

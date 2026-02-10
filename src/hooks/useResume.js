@@ -13,7 +13,7 @@ const initialResumeState = {
         phone: '',
         linkedin: '',
         portfolio: '',
-        instagram: '',
+        github: '',
         youtube: '',
         locations: [],
         nationality: '',
@@ -34,6 +34,7 @@ export const useResume = (user, resumeId) => {
     const [strength, setStrength] = useState(0)
 
     const skipNextFetch = React.useRef(false)
+    const fetchedId = React.useRef(null)
 
     // Dirty Check
     const isDirty = useMemo(() => {
@@ -60,9 +61,16 @@ export const useResume = (user, resumeId) => {
     useEffect(() => {
         if (resumeId && user) {
 
+            // Prevent Refetching if same ID and already loaded
+            if (fetchedId.current === resumeId) {
+                setLoading(false)
+                return
+            }
+
             // Optimization: If we just created this resume locally, don't re-fetch immediately
             if (skipNextFetch.current) {
                 skipNextFetch.current = false
+                fetchedId.current = resumeId
                 setLoading(false)
                 return
             }
@@ -88,6 +96,7 @@ export const useResume = (user, resumeId) => {
                         }
                         setResumeData(mergedContent)
                         setLastSavedData(mergedContent)
+                        fetchedId.current = resumeId
                     }
                 } catch (error) {
                     console.error('Error fetching resume:', error)

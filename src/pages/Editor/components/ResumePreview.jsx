@@ -2,23 +2,57 @@
 import React from 'react'
 
 const ResumePreview = ({ resumeData }) => {
-    // Helper to render date range (logic copied from original)
+    // Helper to render date range
     const renderDateRange = (startDate, endDate, isCurrent) => {
         if (!startDate && !endDate) return ''
-        const start = startDate ? startDate : ''
-        const end = isCurrent ? 'Atualmente' : (endDate ? endDate : '')
+
+        const formatDate = (dateString) => {
+            if (!dateString) return ''
+            const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
+
+            // Handle YYYY-MM (ISO)
+            if (dateString.includes('-')) {
+                const [year, month] = dateString.split('-')
+                if (month && months[parseInt(month) - 1]) return `${months[parseInt(month) - 1]}/${year}`
+                return dateString
+            }
+
+            // Handle MM/YYYY (Legacy)
+            if (dateString.includes('/')) {
+                const [month, year] = dateString.split('/')
+                if (month && months[parseInt(month) - 1]) return `${months[parseInt(month) - 1]}/${year}`
+                return dateString
+            }
+
+            return dateString
+        }
+
+        const start = formatDate(startDate)
+        const end = isCurrent ? 'Atualmente' : formatDate(endDate)
         return `${start} - ${end}`
     }
 
     // Helper for Rich Text line breaks
     const renderRichText = (text) => {
         if (!text) return null
-        return text.split('\n').map((line, i) => (
-            <React.Fragment key={i}>
-                {line}
-                {i < text.split('\n').length - 1 && <br />}
-            </React.Fragment>
-        ))
+        return text.split('\n').map((line, i) => {
+            const processBold = (str) => {
+                const parts = str.split(/(\*\*.*?\*\*)/g)
+                return parts.map((part, index) => {
+                    if (part.startsWith('**') && part.endsWith('**')) {
+                        return <strong key={index}>{part.slice(2, -2)}</strong>
+                    }
+                    return part
+                })
+            }
+
+            return (
+                <React.Fragment key={i}>
+                    {processBold(line)}
+                    {i < text.split('\n').length - 1 && <br />}
+                </React.Fragment>
+            )
+        })
     }
 
     return (
@@ -38,20 +72,29 @@ const ResumePreview = ({ resumeData }) => {
                 <main className="grid grid-rows-[auto_1fr] gap-8">
 
                     {/* INFO CONTACT */}
-                    {(resumeData.personalInfo.email || resumeData.personalInfo.phone || resumeData.personalInfo.linkedin || resumeData.personalInfo.locations?.length > 0) && (
+                    {(resumeData.personalInfo.email || resumeData.personalInfo.phone || resumeData.personalInfo.linkedin || resumeData.personalInfo.portfolio || resumeData.personalInfo.instagram || resumeData.personalInfo.youtube || resumeData.personalInfo.locations?.length > 0) && (
                         <section>
-                            <h3 className="text-[10px] font-extrabold text-[#1e3a8a] uppercase tracking-widest mb-3 border-b border-gray-100 pb-1">Informação de Contato</h3>
+                            <h3 className="text-[10px] font-extrabold text-[#1e3a8a] uppercase tracking-widest mb-3 border-b border-gray-100 pb-1">Dados Pessoais</h3>
                             <div className="text-[11px] leading-relaxed text-slate-600 space-y-0.5 font-medium">
                                 {resumeData.personalInfo.email && <div><span className="font-bold text-[#1e3a8a]">E-mail:</span> {resumeData.personalInfo.email}</div>}
+                                {resumeData.personalInfo.phone && <div><span className="font-bold text-[#1e3a8a]">Telefone:</span> {resumeData.personalInfo.phone}</div>}
                                 {resumeData.personalInfo.locations && resumeData.personalInfo.locations.length > 0 && (
                                     <div><span className="font-bold text-[#1e3a8a]">Endereço:</span> {resumeData.personalInfo.locations.join(', ')} {resumeData.personalInfo.nationality && `- ${resumeData.personalInfo.nationality}`}</div>
                                 )}
-                                {resumeData.personalInfo.phone && <div><span className="font-bold text-[#1e3a8a]">Telefone:</span> {resumeData.personalInfo.phone}</div>}
                                 {resumeData.personalInfo.nationality && !resumeData.personalInfo.locations?.length && (
                                     <div><span className="font-bold text-[#1e3a8a]">Nacionalidade:</span> {resumeData.personalInfo.nationality}</div>
                                 )}
                                 {resumeData.personalInfo.linkedin && (
-                                    <div><span className="font-bold text-[#1e3a8a]">Redes sociais, site:</span> {resumeData.personalInfo.linkedin}</div>
+                                    <div><span className="font-bold text-[#1e3a8a]">LinkedIn:</span> {resumeData.personalInfo.linkedin}</div>
+                                )}
+                                {resumeData.personalInfo.portfolio && (
+                                    <div><span className="font-bold text-[#1e3a8a]">Portfólio:</span> {resumeData.personalInfo.portfolio}</div>
+                                )}
+                                {resumeData.personalInfo.github && (
+                                    <div><span className="font-bold text-[#1e3a8a]">GitHub:</span> {resumeData.personalInfo.github}</div>
+                                )}
+                                {resumeData.personalInfo.youtube && (
+                                    <div><span className="font-bold text-[#1e3a8a]">YouTube:</span> {resumeData.personalInfo.youtube}</div>
                                 )}
                             </div>
                         </section>

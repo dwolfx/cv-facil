@@ -1,5 +1,6 @@
 import React from 'react'
 import { FileText, ChevronDown } from 'lucide-react'
+import RichTextarea from '../ui/RichTextarea'
 
 const SummaryForm = ({ resumeData, activeSection, toggleSection, updateField }) => {
     return (
@@ -18,11 +19,12 @@ const SummaryForm = ({ resumeData, activeSection, toggleSection, updateField }) 
             </button>
             {activeSection === 'summary' && (
                 <div className="p-4 pt-0">
-                    <textarea
+                    <RichTextarea
                         value={resumeData.personalInfo.summary}
                         onChange={(e) => updateField('personalInfo', 'summary', e.target.value)}
-                        className="w-full h-32 p-3 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-200 focus:border-orange-400 outline-none transition-all resize-none"
+                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-200 focus:border-orange-400 outline-none transition-all resize-none"
                         placeholder="Escreva um breve resumo sobre sua carreira..."
+                        maxLength={2000}
                     />
                 </div>
             )}

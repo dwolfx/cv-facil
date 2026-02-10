@@ -51,6 +51,18 @@ const ResumeForm = ({
         updateField('personalInfo', 'locations', newLocs)
     }
 
+    const getStrengthColor = (s) => {
+        if (s < 40) return 'from-red-500 to-red-600'
+        if (s <= 80) return 'from-orange-400 to-orange-600'
+        return 'from-emerald-400 to-emerald-600'
+    }
+
+    const getStrengthTextColor = (s) => {
+        if (s < 40) return 'text-red-500'
+        if (s <= 80) return 'text-orange-500'
+        return 'text-emerald-600'
+    }
+
     return (
         <div className="p-6 pb-32 md:pb-6 space-y-6">
             <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
@@ -59,18 +71,20 @@ const ResumeForm = ({
             </h2>
 
             {/* STRENGTH WIDGET */}
-            <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
-                <div className="flex justify-between items-center mb-2">
+            <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm grid gap-2">
+                <div className="flex justify-between items-center">
                     <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Força do Currículo</span>
-                    <span className="text-xs font-bold text-[var(--primary)]">{strength}%</span>
+                    <span className={`text-xs font-bold ${getStrengthTextColor(strength)}`}>{strength}%</span>
                 </div>
                 <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
                     <div
-                        className="h-full bg-gradient-to-r from-orange-400 to-red-500 transition-all duration-1000 ease-out"
+                        className={`h-full bg-gradient-to-r ${getStrengthColor(strength)} transition-all duration-1000 ease-out shadow-sm`}
                         style={{ width: `${strength}%` }}
                     />
                 </div>
-                <p className="text-[10px] text-slate-400 mt-2">Adicione mais informações para completar.</p>
+                <p className="text-[10px] text-slate-400 mt-1">
+                    {strength < 40 ? 'Adicione mais informações essenciais.' : strength < 80 ? 'Bom começo! Detalhe mais suas experiências.' : 'Currículo forte! Pronto para enviar.'}
+                </p>
             </div>
 
             <PersonalInfoForm
