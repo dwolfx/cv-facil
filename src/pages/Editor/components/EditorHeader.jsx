@@ -28,6 +28,8 @@ const EditorHeader = ({
             planCurrent={resumeCount}
             planMax={planFeatures?.maxResumes || 2}
             isPremium={planFeatures?.isPremium}
+            planTier={planFeatures?.tier}
+            planExpiresAt={planFeatures?.expiresAt}
             className="sticky top-0 z-30 shadow-sm"
         >
             <input

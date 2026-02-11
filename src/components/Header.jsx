@@ -4,7 +4,18 @@ import { ChevronLeft } from 'lucide-react'
 import PlanWidget from './PlanWidget'
 import UserDropdown from './UserDropdown'
 
-const Header = ({ title, subtitle, children, className = '', planCurrent = 0, planMax = 2, isPremium = false, backLink }) => {
+const Header = ({
+    title,
+    subtitle,
+    children,
+    className = '',
+    planCurrent,
+    planMax,
+    isPremium,
+    planTier,
+    planExpiresAt,
+    backLink
+}) => {
     return (
         <header className={`flex items-center justify-between bg-white/80 backdrop-blur-md dark:bg-slate-900/80 px-4 md:px-8 h-16 md:h-20 border-b border-slate-200 dark:border-slate-800 shrink-0 z-20 relative transition-all duration-300 ${className}`}>
             <div className="flex items-center gap-4">
@@ -28,9 +39,15 @@ const Header = ({ title, subtitle, children, className = '', planCurrent = 0, pl
                 {/* Divider if children exist */}
                 {children && <div className="w-px h-6 bg-slate-200 dark:bg-slate-700 mx-1 hidden md:block"></div>}
 
-                {/* Plan Widget - Flexible visibility */}
+                {/* Plan Widget */}
                 <div className="hidden md:block">
-                    <PlanWidget current={planCurrent} max={planMax} isPremium={isPremium} />
+                    <PlanWidget
+                        current={planCurrent}
+                        max={planMax}
+                        isPremium={isPremium}
+                        planLabel={planTier}
+                        expiresAt={planExpiresAt}
+                    />
                 </div>
 
                 <div className="w-px h-8 bg-slate-200 dark:bg-slate-700 mx-2 hidden md:block"></div>

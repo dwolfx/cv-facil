@@ -51,16 +51,22 @@ const ResumeForm = ({
         updateField('personalInfo', 'locations', newLocs)
     }
 
+    const getStrengthTheme = (s) => {
+        if (s < 40) return "bg-red-50 border-red-100"
+        if (s <= 80) return "bg-orange-50 border-orange-100"
+        return "bg-emerald-50 border-emerald-100"
+    }
+
+    const getStrengthTextColor = (s) => {
+        if (s < 40) return "text-red-700"
+        if (s <= 80) return "text-orange-700"
+        return "text-emerald-700"
+    }
+
     const getStrengthColor = (s) => {
         if (s < 40) return 'from-red-500 to-red-600'
         if (s <= 80) return 'from-orange-400 to-orange-600'
         return 'from-emerald-400 to-emerald-600'
-    }
-
-    const getStrengthTextColor = (s) => {
-        if (s < 40) return 'text-red-500'
-        if (s <= 80) return 'text-orange-500'
-        return 'text-emerald-600'
     }
 
     return (
@@ -71,18 +77,18 @@ const ResumeForm = ({
             </h2>
 
             {/* STRENGTH WIDGET */}
-            <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm grid gap-2">
+            <div className={`p-4 rounded-xl border shadow-sm grid gap-2 ${getStrengthTheme(strength)}`}>
                 <div className="flex justify-between items-center">
-                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Força do Currículo</span>
+                    <span className={`text-xs font-bold uppercase tracking-wider ${getStrengthTextColor(strength)}`}>Força do Currículo</span>
                     <span className={`text-xs font-bold ${getStrengthTextColor(strength)}`}>{strength}%</span>
                 </div>
-                <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
+                <div className="h-2 w-full bg-white/50 rounded-full overflow-hidden">
                     <div
                         className={`h-full bg-gradient-to-r ${getStrengthColor(strength)} transition-all duration-1000 ease-out shadow-sm`}
                         style={{ width: `${strength}%` }}
                     />
                 </div>
-                <p className="text-[10px] text-slate-400 mt-1">
+                <p className={`text-[10px] mt-1 font-medium ${getStrengthTextColor(strength)} opacity-80`}>
                     {strength < 40 ? 'Adicione mais informações essenciais.' : strength < 80 ? 'Bom começo! Detalhe mais suas experiências.' : 'Currículo forte! Pronto para enviar.'}
                 </p>
             </div>

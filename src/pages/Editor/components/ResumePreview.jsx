@@ -56,12 +56,12 @@ const ResumePreview = ({ resumeData }) => {
     }
 
     return (
-        <div id="resume-preview" className="bg-white mx-auto shadow-2xl relative" style={{ width: '210mm', minHeight: '297mm', padding: '0' }}>
-            <div className="h-full w-full p-[40px] text-[#1e293b] font-sans text-left print:p-0">
+        <div id="resume-preview" className="bg-white mx-auto shadow-2xl relative" style={{ width: '210mm', minHeight: 'auto', padding: '0' }}>
+            <div className="h-full w-full p-[56px] text-[#1e293b] font-sans text-left print:p-0">
 
                 {/* HEADLINE */}
-                <header className="mb-10 text-left border-b-4 border-[#1e3a8a] pb-6">
-                    <h1 className="text-[32px] font-extrabold text-[#1e3a8a] uppercase tracking-wide leading-tight mb-1 font-['Inter']">
+                <header className="mb-[50px] text-left border-b-4 border-[#1e3a8a] pb-6">
+                    <h1 className="text-[32px] font-extrabold text-[#1e3a8a] uppercase tracking-wide leading-tight mb-2 font-['Inter']">
                         {resumeData.personalInfo.fullName || 'Seu Nome'}
                     </h1>
                     <p className="text-[14px] text-slate-500 font-medium tracking-widest uppercase">
@@ -69,46 +69,80 @@ const ResumePreview = ({ resumeData }) => {
                     </p>
                 </header>
 
-                <main className="grid grid-rows-[auto_1fr] gap-8">
+                <main className="grid grid-rows-[auto_1fr] gap-[40px]">
 
                     {/* INFO CONTACT */}
                     {(resumeData.personalInfo.email || resumeData.personalInfo.phone || resumeData.personalInfo.linkedin || resumeData.personalInfo.portfolio || resumeData.personalInfo.instagram || resumeData.personalInfo.youtube || resumeData.personalInfo.locations?.length > 0) && (
                         <section>
-                            <h3 className="text-[10px] font-extrabold text-[#1e3a8a] uppercase tracking-widest mb-3 border-b border-gray-100 pb-1">Dados Pessoais</h3>
-                            <div className="text-[11px] leading-relaxed text-slate-600 space-y-0.5 font-medium">
-                                {resumeData.personalInfo.email && <div><span className="font-bold text-[#1e3a8a]">E-mail:</span> {resumeData.personalInfo.email}</div>}
-                                {resumeData.personalInfo.phone && <div><span className="font-bold text-[#1e3a8a]">Telefone:</span> {resumeData.personalInfo.phone}</div>}
+                            <h3 className="text-[10px] font-extrabold text-[#1e3a8a] uppercase tracking-widest mb-[12px] border-b border-gray-100 pb-2">Dados Pessoais</h3>
+                            <div className="space-y-[6px] font-medium text-[11px] leading-relaxed">
+                                {resumeData.personalInfo.email && (
+                                    <div className="grid grid-cols-[170px_1fr] items-baseline">
+                                        <span className="font-bold text-[#1e3a8a]">E-mail:</span>
+                                        <span className="text-slate-600">{resumeData.personalInfo.email}</span>
+                                    </div>
+                                )}
+                                {resumeData.personalInfo.phone && (
+                                    <div className="grid grid-cols-[170px_1fr] items-baseline">
+                                        <span className="font-bold text-[#1e3a8a]">Telefone:</span>
+                                        <span className="text-slate-600">{resumeData.personalInfo.phone}</span>
+                                    </div>
+                                )}
                                 {resumeData.personalInfo.locations && resumeData.personalInfo.locations.length > 0 && (
-                                    <div><span className="font-bold text-[#1e3a8a]">Endereço:</span> {resumeData.personalInfo.locations.join(', ')} {resumeData.personalInfo.nationality && `- ${resumeData.personalInfo.nationality}`}</div>
+                                    <div className="grid grid-cols-[170px_1fr] items-baseline">
+                                        <span className="font-bold text-[#1e3a8a]">Endereço:</span>
+                                        <span className="text-slate-600">
+                                            {resumeData.personalInfo.locations.join(', ')} {resumeData.personalInfo.nationality && `- ${resumeData.personalInfo.nationality}`}
+                                        </span>
+                                    </div>
                                 )}
                                 {resumeData.personalInfo.nationality && !resumeData.personalInfo.locations?.length && (
-                                    <div><span className="font-bold text-[#1e3a8a]">Nacionalidade:</span> {resumeData.personalInfo.nationality}</div>
+                                    <div className="grid grid-cols-[170px_1fr] items-baseline">
+                                        <span className="font-bold text-[#1e3a8a]">Nacionalidade:</span>
+                                        <span className="text-slate-600">{resumeData.personalInfo.nationality}</span>
+                                    </div>
                                 )}
                                 {resumeData.personalInfo.linkedin && (
-                                    <div><span className="font-bold text-[#1e3a8a]">LinkedIn:</span> {resumeData.personalInfo.linkedin}</div>
+                                    <div className="grid grid-cols-[170px_1fr] items-baseline">
+                                        <span className="font-bold text-[#1e3a8a]">LinkedIn:</span>
+                                        <span className="text-slate-600">{resumeData.personalInfo.linkedin}</span>
+                                    </div>
                                 )}
                                 {resumeData.personalInfo.portfolio && (
-                                    <div><span className="font-bold text-[#1e3a8a]">Portfólio:</span> {resumeData.personalInfo.portfolio}</div>
+                                    <div className="grid grid-cols-[170px_1fr] items-baseline">
+                                        <span className="font-bold text-[#1e3a8a]">Portfólio:</span>
+                                        <span className="text-slate-600">{resumeData.personalInfo.portfolio}</span>
+                                    </div>
                                 )}
                                 {resumeData.personalInfo.github && (
-                                    <div><span className="font-bold text-[#1e3a8a]">GitHub:</span> {resumeData.personalInfo.github}</div>
+                                    <div className="grid grid-cols-[170px_1fr] items-baseline">
+                                        <span className="font-bold text-[#1e3a8a]">GitHub:</span>
+                                        <span className="text-slate-600">{resumeData.personalInfo.github}</span>
+                                    </div>
                                 )}
                                 {resumeData.personalInfo.youtube && (
-                                    <div><span className="font-bold text-[#1e3a8a]">YouTube:</span> {resumeData.personalInfo.youtube}</div>
+                                    <div className="grid grid-cols-[170px_1fr] items-baseline">
+                                        <span className="font-bold text-[#1e3a8a]">YouTube:</span>
+                                        <span className="text-slate-600">{resumeData.personalInfo.youtube}</span>
+                                    </div>
                                 )}
                             </div>
                         </section>
                     )}
 
                     {/* CONTENT BODY */}
-                    <section className="space-y-8">
+                    <section className="space-y-[45px]">
 
                         {/* OBJETIVO */}
                         {resumeData.personalInfo.summary && (
                             <div>
-                                <h3 className="text-[10px] font-extrabold text-[#1e3a8a] uppercase tracking-widest mb-3 border-b border-gray-100 pb-1">Objetivo</h3>
-                                <div className="text-[11px] text-slate-600 leading-relaxed text-justify">
-                                    {renderRichText(resumeData.personalInfo.summary)}
+                                <h3 className="text-[10px] font-extrabold text-[#1e3a8a] uppercase tracking-widest mb-[15px] border-b border-gray-100 pb-2">Objetivo</h3>
+                                <div className="grid grid-cols-[170px_1fr]">
+                                    {/* Empty Column for Indentation */}
+                                    <div></div>
+                                    <div className="text-[11px] text-slate-600 leading-relaxed text-justify">
+                                        {renderRichText(resumeData.personalInfo.summary)}
+                                    </div>
                                 </div>
                             </div>
                         )}
@@ -116,10 +150,10 @@ const ResumePreview = ({ resumeData }) => {
                         {/* EXPERIÊNCIA */}
                         {resumeData.experience.length > 0 && (
                             <div>
-                                <h3 className="text-[10px] font-extrabold text-[#1e3a8a] uppercase tracking-widest mb-6 border-b border-gray-100 pb-2">Experiência</h3>
-                                <div className="space-y-6">
+                                <h3 className="text-[10px] font-extrabold text-[#1e3a8a] uppercase tracking-widest mb-[25px] border-b border-gray-100 pb-2">Experiência</h3>
+                                <div className="space-y-[40px]">
                                     {resumeData.experience.map((exp, i) => (
-                                        <div key={i} className="grid grid-cols-[140px_1fr] gap-6 experience-item">
+                                        <div key={i} className="grid grid-cols-[170px_1fr] gap-6 experience-item">
                                             <div className="text-right">
                                                 <div className="text-[10px] font-bold text-[#4560b5] mb-1">{exp.location}</div>
                                                 <div className="text-[10px] text-slate-400 italic">
@@ -128,7 +162,7 @@ const ResumePreview = ({ resumeData }) => {
                                             </div>
                                             <div>
                                                 <h4 className="text-[12px] font-extrabold text-[#1e3a8a] mb-0.5">{exp.position}</h4>
-                                                <p className="text-[11px] font-bold text-slate-500 mb-2">{exp.company}</p>
+                                                <p className="text-[11px] font-bold text-slate-500 mb-[18px]">{exp.company}</p>
                                                 <div className="text-[11px] text-slate-600 leading-relaxed text-justify">
                                                     {renderRichText(exp.description)}
                                                 </div>
@@ -142,10 +176,10 @@ const ResumePreview = ({ resumeData }) => {
                         {/* EDUCAÇÃO */}
                         {resumeData.education.length > 0 && (
                             <div>
-                                <h3 className="text-[10px] font-extrabold text-[#1e3a8a] uppercase tracking-widest mb-6 border-b border-gray-100 pb-2">Educação</h3>
-                                <div className="space-y-5">
+                                <h3 className="text-[10px] font-extrabold text-[#1e3a8a] uppercase tracking-widest mb-[25px] border-b border-gray-100 pb-2">Educação</h3>
+                                <div className="space-y-[30px]">
                                     {resumeData.education.map((edu, i) => (
-                                        <div key={i} className="grid grid-cols-[140px_1fr] gap-6 school-item">
+                                        <div key={i} className="grid grid-cols-[170px_1fr] gap-6 school-item">
                                             <div className="text-right">
                                                 <div className="text-[10px] font-bold text-[#4560b5] mb-1">{edu.location}</div>
                                                 <div className="text-[10px] text-slate-400 italic">
@@ -164,7 +198,7 @@ const ResumePreview = ({ resumeData }) => {
 
                         {/* SKILLS & IDIOMAS */}
                         {(resumeData.languages.length > 0 || resumeData.skills.length > 0) && (
-                            <div className="grid grid-cols-[140px_1fr] gap-6 border-t border-gray-100 pt-6">
+                            <div className="grid grid-cols-[170px_1fr] gap-6 border-t border-gray-100 pt-[30px]">
                                 <div className="text-right">
                                     {resumeData.languages.length > 0 && (
                                         <div>

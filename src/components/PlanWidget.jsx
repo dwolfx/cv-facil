@@ -2,7 +2,26 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 
-const PlanWidget = ({ current = 0, max = 2, isPremium = false, className = '' }) => {
+const PlanWidget = ({ current = 0, max = 2, isPremium = false, planLabel = '', expiresAt = null, className = '' }) => {
+
+    const calculateRemaining = () => {
+        if (!expiresAt) return null;
+        const now = new Date();
+        const expiry = new Date(expiresAt);
+        const diffTime = expiry - now;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffDays < 0) return "Expirado";
+
+        if (diffDays > 30) {
+            const months = Math.floor(diffDays / 30.44);
+            return `${months} meses restantes`;
+        }
+        return `${diffDays} dias restantes`;
+    }
+
+    const remainingText = calculateRemaining();
+    const isLifetime = planLabel === 'lifetime' || planLabel?.toLowerCase().includes('vitalício');
 
     // Determine Color Scheme based on usage or premium status
     const getTheme = () => {
@@ -12,8 +31,9 @@ const PlanWidget = ({ current = 0, max = 2, isPremium = false, className = '' })
                 textParams: "text-purple-700 dark:text-purple-300",
                 barBg: "bg-purple-200 dark:bg-purple-800",
                 barFill: "bg-purple-600 dark:bg-purple-400",
-                label: "PLANO PRO 🚀",
-                subLabel: "Ilimitado"
+                label: isLifetime ? "VITALÍCIO 🚀" : "PLANO PRO 🚀",
+                subLabel: isLifetime ? "Acesso Vitalício" : (remainingText || "Assinatura Ativa"),
+                showProgress: false
             }
         }
 
@@ -25,7 +45,8 @@ const PlanWidget = ({ current = 0, max = 2, isPremium = false, className = '' })
                 barBg: "bg-emerald-200 dark:bg-emerald-800",
                 barFill: "bg-emerald-500 dark:bg-emerald-400",
                 label: "PLANO GRATUITO",
-                subLabel: `${current} de ${max} usados`
+                subLabel: `${current} de ${max} usados`,
+                showProgress: true
             }
         }
 
@@ -36,7 +57,8 @@ const PlanWidget = ({ current = 0, max = 2, isPremium = false, className = '' })
                 barBg: "bg-orange-200 dark:bg-orange-800",
                 barFill: "bg-orange-500 dark:bg-orange-400",
                 label: "PLANO GRATUITO",
-                subLabel: `${current} de ${max} usados`
+                subLabel: `${current} de ${max} usados`,
+                showProgress: true
             }
         }
 
@@ -47,7 +69,8 @@ const PlanWidget = ({ current = 0, max = 2, isPremium = false, className = '' })
             barBg: "bg-red-200 dark:bg-red-800",
             barFill: "bg-red-500 dark:bg-red-400",
             label: "PLANO GRATUITO",
-            subLabel: `${current} de ${max} usados`
+            subLabel: `${current} de ${max} usados`,
+            showProgress: true
         }
     }
 
@@ -69,13 +92,15 @@ const PlanWidget = ({ current = 0, max = 2, isPremium = false, className = '' })
                 </span>
             </div>
 
-            {/* Progress Bar */}
-            <div className={`w-16 h-1.5 rounded-full overflow-hidden ${theme.barBg}`}>
-                <div
-                    className={`h-full rounded-full transition-all duration-500 ${theme.barFill}`}
-                    style={{ width: `${percentage}%` }}
-                ></div>
-            </div>
+            {/* Progress Bar (Only for Free/Non-Premium) */}
+            {theme.showProgress && (
+                <div className={`w-16 h-1.5 rounded-full overflow-hidden ${theme.barBg}`}>
+                    <div
+                        className={`h-full rounded-full transition-all duration-500 ${theme.barFill}`}
+                        style={{ width: `${percentage}%` }}
+                    ></div>
+                </div>
+            )}
         </Link>
     )
 }

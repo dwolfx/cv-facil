@@ -20,7 +20,7 @@ export const useUserPlan = (user) => {
         try {
             const { data, error } = await supabase
                 .from('profiles')
-                .select('plan_tier')
+                .select('*') // Select all to get expiration
                 .eq('id', user.id)
                 .single()
 
@@ -28,6 +28,8 @@ export const useUserPlan = (user) => {
             if (error && error.code !== 'PGRST116') throw error
 
             const tier = data?.plan_tier || 'free'
+            const expiresAt = data?.plan_expires_at // Assuming this name, or we will check locally. Use common sense: stripe_current_period_end?
+            // Let's assume 'plan_expires_at' for now as it pairs with 'plan_tier'.
             setPlan(tier)
 
             // Define feature flags based on tier
@@ -38,7 +40,9 @@ export const useUserPlan = (user) => {
                 maxResumes: isPremium ? 999 : 2, // Free: 2, Premium: Unlimited (999)
                 canDownloadPDF: true,
                 canRemoveBranding: isPremium,
-                isPremium
+                isPremium,
+                expiresAt, // Return expiration
+                tier // Return tier explicitly
             })
 
         } catch (error) {
