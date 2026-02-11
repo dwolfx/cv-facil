@@ -22,7 +22,8 @@ const initialResumeState = {
     experience: [],
     education: [],
     skills: [],
-    languages: []
+    languages: [],
+    template_id: 'modern'
 }
 
 export const useResume = (user, resumeId) => {
@@ -89,6 +90,7 @@ export const useResume = (user, resumeId) => {
                         const mergedContent = {
                             ...initialResumeState,
                             ...data.content,
+                            template_id: data.template_id || data.content?.template_id || 'modern',
                             personalInfo: {
                                 ...initialResumeState.personalInfo,
                                 ...(data.content.personalInfo || {})
