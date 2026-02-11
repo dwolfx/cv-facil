@@ -43,7 +43,7 @@ const ImportModal = ({ isOpen, onClose, onImport }) => {
 
                 <div className="modal-header">
                     <h2>Importar Currículo</h2>
-                    <p>Selecione um arquivo para preencher automaticamente.</p>
+                    <p>Selecione um arquivo para importar automaticamente.</p>
                 </div>
 
                 <div
