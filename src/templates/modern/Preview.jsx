@@ -8,8 +8,6 @@ const ResumePreview = ({ resumeData }) => {
     const template = getTemplate(templateId)
     const TemplateComponent = template.component
 
-    if (!TemplateComponent) return <div>Template não encontrado</div>
-
     return <TemplateComponent resumeData={resumeData} />
 }
 

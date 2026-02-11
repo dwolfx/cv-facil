@@ -2,7 +2,7 @@
 import { getTemplate } from '../templates/registry'
 
 export const generateResumePDF = (resumeData) => {
-    const templateId = resumeData.template_id || 'modern'
+    constMN templateId = resumeData.template_id || 'modern'
     const template = getTemplate(templateId)
 
     if (template && template.pdfGenerator) {

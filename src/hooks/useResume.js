@@ -142,6 +142,7 @@ export const useResume = (user, resumeId) => {
                 user_id: user.id,
                 title: resumeData.personalInfo.role || 'Sem Título',
                 content: resumeData,
+                template_id: resumeData.template_id || 'modern',
                 strength: strength,
                 updated_at: new Date()
             }
