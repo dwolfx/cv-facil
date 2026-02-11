@@ -1,8 +1,7 @@
 
-
 import React, { useState, useEffect } from 'react'
 import {
-    ChevronDown, PlusCircle, MoreVertical, Edit2, Trash2, Clock, CheckCircle, Loader2, Download, Lock
+    ChevronDown, PlusCircle, MoreVertical, Edit2, Trash2, Clock, CheckCircle, Loader2, Download, Lock, Copy
 } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -112,6 +111,41 @@ const Dashboard = () => {
         } catch (error) {
             console.error('Error deleting resume:', error)
             toast.error('Erro ao excluir currículo.')
+        }
+    }
+
+    const handleDuplicate = async (e, resume) => {
+        e.stopPropagation()
+        setOpenMenuId(null)
+
+        if (!features.isPremium && resumes.length >= planLimit) {
+            return toast.error('Limite do Plano Gratuito atingido!', {
+                description: 'Você já alcançou o limite de currículos. Faça upgrade para duplicar.'
+            })
+        }
+
+        const toastId = toast.loading('Duplicando currículo...')
+
+        try {
+            const { data, error } = await supabase
+                .from('resumes')
+                .insert({
+                    user_id: user.id,
+                    title: `${resume.title || 'Sem Título'} (Cópia)`,
+                    content: resume.content,
+                    strength: resume.strength,
+                    updated_at: new Date()
+                })
+                .select()
+                .single()
+
+            if (error) throw error
+
+            setResumes([data, ...resumes])
+            toast.success('Currículo duplicado!', { id: toastId })
+        } catch (error) {
+            console.error(error)
+            toast.error('Erro ao duplicar.', { id: toastId })
         }
     }
 
@@ -242,7 +276,55 @@ const Dashboard = () => {
                                     const isLocked = !features.isPremium && index >= planLimit
 
                                     return (
-                                        <div key={resume.id} className={`bg-white dark:bg-slate-900 border ${isLocked ? 'border-slate-200 dark:border-slate-800 opacity-75' : 'border-slate-200 dark:border-slate-800'} rounded-xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group flex flex-col h-[280px] md:h-[320px] relative`}>
+                                        <div
+                                            key={resume.id}
+                                            onClick={() => !isLocked && navigate(`/editor?id=${resume.id}`)}
+                                            className={`bg-white dark:bg-slate-900 border ${isLocked ? 'border-slate-200 dark:border-slate-800 opacity-75 cursor-not-allowed' : 'border-slate-200 dark:border-slate-800 cursor-pointer'} rounded-xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group flex flex-col h-[280px] md:h-[320px] relative`}
+                                        >
+
+                                            {/* Actions Overlay / Dropdown - MOVED HERE (Outside overflow-hidden) */}
+                                            {!isLocked && (
+                                                <div className="absolute top-3 right-3 z-30">
+                                                    <div className="relative">
+                                                        <button
+                                                            onClick={(e) => handleMenuClick(e, resume.id)}
+                                                            className="p-2 bg-white rounded-full shadow-md text-slate-600 hover:text-blue-600 hover:bg-blue-50 transition-colors border border-slate-100"
+                                                        >
+                                                            <MoreVertical size={16} />
+                                                        </button>
+
+                                                        {openMenuId === resume.id && (
+                                                            <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-slate-200 rounded-lg shadow-xl overflow-hidden animate-in fade-in zoom-in-95 z-50 flex flex-col">
+                                                                <button
+                                                                    onClick={(e) => { e.stopPropagation(); navigate(`/editor?id=${resume.id}`); }}
+                                                                    className="w-full text-left px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2 border-b border-slate-100"
+                                                                >
+                                                                    <Edit2 size={14} /> Editar
+                                                                </button>
+                                                                <button
+                                                                    onClick={(e) => startRenaming(e, resume)}
+                                                                    className="w-full text-left px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2 border-b border-slate-100"
+                                                                >
+                                                                    <Edit2 size={14} className="opacity-0" />
+                                                                    Renomear
+                                                                </button>
+                                                                <button
+                                                                    onClick={(e) => handleDuplicate(e, resume)}
+                                                                    className="w-full text-left px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2 border-b border-slate-100"
+                                                                >
+                                                                    <Copy size={14} /> Duplicar
+                                                                </button>
+                                                                <button
+                                                                    onClick={(e) => { e.stopPropagation(); handleDelete(resume.id); }}
+                                                                    className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                                                                >
+                                                                    <Trash2 size={14} /> Excluir
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
 
                                             {/* Locked Overlay on Preview */}
                                             {isLocked && (
@@ -303,51 +385,13 @@ const Dashboard = () => {
                                                     {/* Fade Out Effect at Bottom */}
                                                     <div className="absolute bottom-0 left-0 w-full h-12 bg-gradient-to-t from-white to-transparent pointer-events-none"></div>
                                                 </div>
-
-                                                {/* Actions Overlay / Dropdown - Hide if Locked */}
-                                                {!isLocked && (
-                                                    <div className="absolute top-3 right-3 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity z-20">
-                                                        <div className="relative">
-                                                            <button
-                                                                onClick={(e) => handleMenuClick(e, resume.id)}
-                                                                className="p-2 bg-white rounded-full shadow-md text-slate-600 hover:text-blue-600 hover:bg-blue-50 transition-colors"
-                                                            >
-                                                                <MoreVertical size={16} />
-                                                            </button>
-
-                                                            {openMenuId === resume.id && (
-                                                                <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-slate-200 rounded-lg shadow-xl overflow-hidden animate-in fade-in zoom-in-95 z-50 flex flex-col">
-                                                                    <Link
-                                                                        to={`/editor?id=${resume.id}`}
-                                                                        className="w-full text-left px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2 border-b border-slate-100"
-                                                                    >
-                                                                        <Edit2 size={14} /> Editar
-                                                                    </Link>
-                                                                    <button
-                                                                        onClick={(e) => startRenaming(e, resume)}
-                                                                        className="w-full text-left px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2"
-                                                                    >
-                                                                        <Edit2 size={14} className="opacity-0" />
-                                                                        Renomear
-                                                                    </button>
-                                                                    <button
-                                                                        onClick={(e) => { e.stopPropagation(); handleDelete(resume.id); }}
-                                                                        className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 border-t border-slate-100"
-                                                                    >
-                                                                        <Trash2 size={14} /> Excluir
-                                                                    </button>
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                )}
                                             </div>
 
                                             {/* Info Area */}
                                             <div className="flex-1 p-4 md:p-5 flex flex-col justify-between relative bg-white dark:bg-slate-900 z-10">
                                                 <div>
                                                     {renamingId === resume.id ? (
-                                                        <div className="mb-1 flex items-center gap-1">
+                                                        <div className="mb-1 flex items-center gap-1" onClick={e => e.stopPropagation()}>
                                                             <input
                                                                 type="text"
                                                                 value={tempTitle}
@@ -380,20 +424,26 @@ const Dashboard = () => {
                                                     {/* Edit Button - Disabled if Locked */}
                                                     {isLocked ? (
                                                         <button
-                                                            onClick={() => toast.error('Limite excedido.', { description: 'Faça upgrade para editar este currículo.' })}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                toast.error('Limite excedido.', { description: 'Faça upgrade para editar este currículo.' })
+                                                            }}
                                                             className="flex-1 h-8 md:h-9 flex items-center justify-center gap-2 bg-slate-100 text-slate-400 rounded-lg text-xs font-bold cursor-not-allowed uppercase tracking-wider"
                                                         >
                                                             <Lock size={14} /> Bloqueado
                                                         </button>
                                                     ) : (
-                                                        <Link to={`/editor?id=${resume.id}`} className="flex-1 h-8 md:h-9 flex items-center justify-center gap-2 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 transition-colors shadow-sm shadow-blue-200">
+                                                        <button
+                                                            onClick={(e) => { e.stopPropagation(); navigate(`/editor?id=${resume.id}`) }}
+                                                            className="flex-1 h-8 md:h-9 flex items-center justify-center gap-2 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 transition-colors shadow-sm shadow-blue-200"
+                                                        >
                                                             <Edit2 size={14} /> Editar
-                                                        </Link>
+                                                        </button>
                                                     )}
 
                                                     {/* Download Button - Always enabled */}
                                                     <button
-                                                        onClick={() => handleDownload(resume)}
+                                                        onClick={(e) => { e.stopPropagation(); handleDownload(resume); }}
                                                         className="h-8 md:h-9 flex items-center justify-center px-3 gap-2 bg-orange-50 text-orange-600 hover:text-orange-700 hover:bg-orange-100 rounded-lg transition-colors border border-orange-200 hover:border-orange-300 shadow-sm font-bold pointer-events-auto"
                                                         title="Baixar PDF"
                                                     >
@@ -402,7 +452,7 @@ const Dashboard = () => {
                                                     </button>
 
                                                     <button
-                                                        onClick={() => handleDelete(resume.id)}
+                                                        onClick={(e) => { e.stopPropagation(); handleDelete(resume.id); }}
                                                         className="h-8 w-8 md:h-9 md:w-9 flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-100 pointer-events-auto"
                                                         title="Excluir"
                                                     >
@@ -420,8 +470,8 @@ const Dashboard = () => {
 
                 {/* Custom Delete Modal */}
                 {resumeToDelete && (
-                    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm animate-in fade-in duration-200">
-                        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-100 dark:border-slate-800">
+                    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setResumeToDelete(null)}>
+                        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-100 dark:border-slate-800" onClick={e => e.stopPropagation()}>
                             <div className="p-6 text-center">
                                 <div className="mx-auto bg-red-100 w-16 h-16 rounded-full flex items-center justify-center mb-4 text-red-600">
                                     <Trash2 size={32} />
