@@ -1,0 +1,70 @@
+.new-resume-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 320px;
+  background-color: var(--bg-card);
+  border: 2px dashed var(--border-color);
+  border-radius: var(--radius-xl);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .new-resume-card {
+    height: 320px; /* Standardized to 320px as requested */
+  }
+}
+
+.new-resume-card:hover {
+  border-color: var(--primary);
+  background-color: var(--primary-light);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+.new-resume-card-icon-container {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background-color: var(--primary-light);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+  transition: transform 0.3s ease;
+  box-shadow: var(--shadow-sm);
+}
+
+.new-resume-card:hover .new-resume-card-icon-container {
+  transform: scale(1.1);
+}
+
+.new-resume-card-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text-main);
+  transition: color 0.3s ease;
+  margin: 0;
+}
+
+.new-resume-card:hover .new-resume-card-title {
+  color: var(--primary);
+}
+
+.new-resume-card-subtitle {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 0.5rem;
+}
+
+/* Glassmorphism support if needed */
+.new-resume-card.glass {
+  background-color: var(--bg-glass);
+  backdrop-filter: blur(8px);
+}

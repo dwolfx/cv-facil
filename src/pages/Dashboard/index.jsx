@@ -1,19 +1,20 @@
 
 import React, { useState, useEffect } from 'react'
-import {
-    ChevronDown, PlusCircle, MoreVertical, Edit2, Trash2, Clock, CheckCircle, Loader2, Download, Lock, Copy, Languages, Globe
-} from 'lucide-react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Loader2 } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import Sidebar from '../../components/Sidebar'
-import UserDropdown from '../../components/UserDropdown'
-import PlanWidget from '../../components/PlanWidget'
 import Header from '../../components/Header'
+import PlanWidget from '../../components/PlanWidget'
 import { supabase } from '../../services/supabaseClient'
 import { useAuth } from '../../contexts/AuthContext'
 import { useUserPlan } from '../../hooks/useUserPlan'
 import { generateResumePDF } from '../../utils/pdfGenerator'
 import { translateResume } from '../../services/translationService'
+
+// Modular Components
+import ResumeCard from './components/ResumeCard'
+import NewResumeCard from './components/NewResumeCard'
 
 const Dashboard = () => {
     const navigate = useNavigate()
@@ -33,7 +34,7 @@ const Dashboard = () => {
         if (!resume.content) return toast.error('Conteúdo vazio ou inválido.')
         try {
             toast.promise(
-                async () => generateResumePDF(resume.content),
+                async () => generateResumePDF(resume.content, resume.title),
                 {
                     loading: 'Gerando PDF...',
                     success: 'Download iniciado!',
@@ -72,15 +73,27 @@ const Dashboard = () => {
     const saveRename = async (id) => {
         if (!tempTitle.trim()) return toast.error('O título não pode ser vazio.')
 
+        const resume = resumes.find(r => r.id === id)
+        let finalTitle = tempTitle.trim()
+
+        // Preserve Tags ([EN], [ES], [PTBR]) if missing in new title
+        const tags = ['[EN]', '[ES]', '[PTBR]']
+        const currentTag = tags.find(tag => resume?.title?.toUpperCase().includes(tag))
+        const hasNewTag = tags.some(tag => finalTitle.toUpperCase().includes(tag))
+
+        if (currentTag && !hasNewTag) {
+            finalTitle = `${finalTitle} ${currentTag}`
+        }
+
         try {
             const { error } = await supabase
                 .from('resumes')
-                .update({ title: tempTitle, updated_at: new Date() })
+                .update({ title: finalTitle, updated_at: new Date() })
                 .eq('id', id)
 
             if (error) throw error
 
-            setResumes(prev => prev.map(r => r.id === id ? { ...r, title: tempTitle, updated_at: new Date() } : r))
+            setResumes(prev => prev.map(r => r.id === id ? { ...r, title: finalTitle, updated_at: new Date() } : r))
             toast.success('Renomeado com sucesso!')
             setRenamingId(null)
         } catch (error) {
@@ -204,19 +217,6 @@ const Dashboard = () => {
         }
     }
 
-    // Format Date Helper
-    const formatDate = (dateString) => {
-        if (!dateString) return ''
-        return new Date(dateString).toLocaleDateString('pt-BR')
-    }
-
-    const getLanguageInfo = (title = '') => {
-        const upTitle = title.toUpperCase()
-        if (upTitle.includes('[EN]')) return { label: 'EN', color: 'bg-blue-50 text-blue-600 border-blue-100' }
-        if (upTitle.includes('[ES]')) return { label: 'ES', color: 'bg-yellow-50 text-yellow-600 border-yellow-100' }
-        if (upTitle.includes('[PTBR]')) return { label: 'PT-BR', color: 'bg-emerald-50 text-emerald-600 border-emerald-100' }
-        return { label: 'PT-BR', color: 'bg-slate-50 text-slate-500 border-slate-100' } // Default
-    }
 
     useEffect(() => {
         if (user) {
@@ -322,285 +322,31 @@ const Dashboard = () => {
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
 
-                                {/* Create New Card */}
-                                <button
-                                    onClick={handleCreateNew}
-                                    className="group flex flex-col items-center justify-center h-[280px] md:h-[320px] bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl hover:border-[var(--primary)] hover:bg-orange-50/50 dark:hover:bg-slate-800/50 transition-all duration-300 cursor-pointer"
-                                >
-                                    <div className="size-14 md:size-16 rounded-full bg-orange-100 text-[var(--primary)] flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-sm">
-                                        <PlusCircle size={28} />
-                                    </div>
-                                    <h3 className="text-base md:text-lg font-bold text-slate-700 dark:text-slate-200 group-hover:text-[var(--primary)] transition-colors">Criar Novo Currículo</h3>
-                                    <p className="text-xs text-slate-400 mt-2">Começar do zero ou importar</p>
-                                </button>
+                                 {/* Create New Card */}
+                                <NewResumeCard onClick={handleCreateNew} />
 
                                 {/* Resume Cards */}
                                 {resumes.map((resume, index) => {
                                     const isLocked = !features.isPremium && index >= planLimit
 
                                     return (
-                                        <div
+                                        <ResumeCard
                                             key={resume.id}
-                                            onClick={() => !isLocked && navigate(`/editor?id=${resume.id}`)}
-                                            className={`bg-white dark:bg-slate-900 border ${isLocked ? 'border-slate-200 dark:border-slate-800 opacity-75 cursor-not-allowed' : 'border-slate-200 dark:border-slate-800 cursor-pointer'} rounded-xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group flex flex-col h-[360px] md:h-[420px] relative`}
-                                        >
-
-                                            {/* Actions Overlay / Dropdown - MOVED HERE (Outside overflow-hidden) */}
-                                            {!isLocked && (
-                                                <div className="absolute top-3 right-3 z-30">
-                                                    <div className="relative">
-                                                        <button
-                                                            onClick={(e) => handleMenuClick(e, resume.id)}
-                                                            className="p-2 bg-white rounded-full shadow-md text-slate-600 hover:text-blue-600 hover:bg-blue-50 transition-colors border border-slate-100"
-                                                        >
-                                                            <MoreVertical size={16} />
-                                                        </button>
-
-                                                        {openMenuId === resume.id && (
-                                                            <div className="absolute right-0 top-full mt-2 w-72 max-h-[80vh] overflow-y-auto bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200/60 dark:border-slate-800 rounded-xl shadow-[0_20px_50px_-12px_rgba(0,0,0,0.2)] animate-in fade-in zoom-in-95 slide-in-from-top-2 z-50 flex flex-col p-2.5 gap-1.5 custom-scrollbar">
-                                                                
-                                                                {/* CRUD Actions */}
-                                                                <div className="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Edição</div>
-                                                                <button
-                                                                    onClick={(e) => { e.stopPropagation(); navigate(`/editor?id=${resume.id}`); }}
-                                                                    className="group w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg flex items-center gap-3 transition-all active:scale-[0.98]"
-                                                                >
-                                                                    <div className="p-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-md group-hover:scale-110 transition-transform">
-                                                                        <Edit2 size={14} />
-                                                                    </div>
-                                                                    <div className="flex flex-col">
-                                                                        <span className="font-semibold">Editar</span>
-                                                                        <span className="text-[10px] text-slate-400">Conteúdo e design</span>
-                                                                    </div>
-                                                                </button>
-
-                                                                <button
-                                                                    onClick={(e) => { e.stopPropagation(); startRenaming(e, resume); }}
-                                                                    className="group w-full text-left px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg flex items-center gap-3 transition-all active:scale-[0.98]"
-                                                                >
-                                                                    <div className="p-1.5 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-md group-hover:scale-110 transition-transform">
-                                                                        <MoreVertical size={14} />
-                                                                    </div>
-                                                                    <div className="flex flex-col">
-                                                                        <span className="font-semibold">Renomear</span>
-                                                                        <span className="text-[10px] text-slate-400">Título do documento</span>
-                                                                    </div>
-                                                                </button>
-
-                                                                {/* File Operations */}
-                                                                <div className="px-3 py-1.5 mt-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-t border-slate-100 dark:border-slate-800">Arquivo</div>
-                                                                <button
-                                                                    onClick={(e) => handleDuplicate(e, resume)}
-                                                                    className="group w-full text-left px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg flex items-center gap-3 transition-all active:scale-[0.98]"
-                                                                >
-                                                                    <div className="p-1.5 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:emerald-400 rounded-md group-hover:scale-110 transition-transform">
-                                                                        <Copy size={14} />
-                                                                    </div>
-                                                                    <div className="flex flex-col">
-                                                                        <span className="font-semibold">Duplicar</span>
-                                                                        <span className="text-[10px] text-slate-400">Criar uma cópia</span>
-                                                                    </div>
-                                                                </button>
-
-                                                                <button
-                                                                    onClick={(e) => { e.stopPropagation(); handleDownload(resume); }}
-                                                                    className="group w-full text-left px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg flex items-center gap-3 transition-all active:scale-[0.98]"
-                                                                >
-                                                                    <div className="p-1.5 bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-md group-hover:scale-110 transition-transform">
-                                                                        <Download size={14} />
-                                                                    </div>
-                                                                    <div className="flex flex-col">
-                                                                        <span className="font-semibold">Baixar PDF</span>
-                                                                        <span className="text-[10px] text-slate-400">Exportação final</span>
-                                                                    </div>
-                                                                </button>
-
-                                                                {/* Localization */}
-                                                                <div className="px-3 py-1.5 mt-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-t border-slate-100 dark:border-slate-800">Tradução</div>
-                                                                <button
-                                                                    onClick={(e) => handleTranslate(e, resume, 'EN-US')}
-                                                                    className="group w-full text-left px-3 py-2 text-sm text-blue-700 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg flex items-center gap-3 transition-all active:scale-[0.98]"
-                                                                >
-                                                                    <div className="p-1.5 bg-blue-100 dark:bg-blue-800/50 text-blue-700 dark:text-blue-300 rounded-md group-hover:scale-110 transition-transform">
-                                                                        <Languages size={14} />
-                                                                    </div>
-                                                                    <div className="flex flex-col">
-                                                                        <span className="font-semibold">English [EN]</span>
-                                                                        <span className="text-[10px] text-blue-400">Traduzir para Inglês</span>
-                                                                    </div>
-                                                                </button>
-
-                                                                <button
-                                                                    onClick={(e) => handleTranslate(e, resume, 'ES')}
-                                                                    className="group w-full text-left px-3 py-2 text-sm text-orange-700 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg flex items-center gap-3 transition-all active:scale-[0.98]"
-                                                                >
-                                                                    <div className="p-1.5 bg-orange-100 dark:bg-orange-800/50 text-orange-700 dark:text-orange-300 rounded-md group-hover:scale-110 transition-transform">
-                                                                        <Languages size={14} />
-                                                                    </div>
-                                                                    <div className="flex flex-col">
-                                                                        <span className="font-semibold">Español [ES]</span>
-                                                                        <span className="text-[10px] text-orange-400">Traduzir para Espanhol</span>
-                                                                    </div>
-                                                                </button>
-
-                                                                <div className="my-1 border-t border-slate-100 dark:border-slate-800"></div>
-                                                                <button
-                                                                    onClick={(e) => { e.stopPropagation(); handleDelete(resume.id); }}
-                                                                    className="group w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg flex items-center gap-3 transition-all active:scale-[0.98]"
-                                                                >
-                                                                    <div className="p-1.5 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-md group-hover:scale-110 transition-transform">
-                                                                        <Trash2 size={14} />
-                                                                    </div>
-                                                                    <span className="font-semibold">Remover</span>
-                                                                </button>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            {/* Locked Overlay on Preview */}
-                                            {isLocked && (
-                                                <div className="absolute top-3 left-3 z-30">
-                                                    <div className="bg-slate-800 text-white text-[10px] px-2 py-1 rounded font-bold uppercase tracking-wider flex items-center gap-1 shadow-lg">
-                                                        <Lock size={10} /> Bloqueado
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            {/* Preview Area (Top 60%) */}
-                                            <div className={`h-[50%] md:h-[55%] bg-slate-100 dark:bg-slate-800 relative overflow-hidden flex items-start justify-center pt-6 ${!isLocked && 'group-hover:bg-slate-100/50'} transition-colors rounded-t-xl`}>
-                                                <div className={`w-[85%] md:w-[80%] h-full bg-white shadow-lg rounded-t-sm origin-top mx-auto pointer-events-none transform ${!isLocked && 'group-hover:scale-105'} transition-transform duration-500 border-t border-x border-slate-200/50 flex flex-col p-4 overflow-hidden relative ${isLocked && 'grayscale opacity-75'}`}>
-                                                    {/* Paper Texture / Content */}
-                                                    {resume.content?.personalInfo?.fullName ? (
-                                                        <div className="flex flex-col gap-2">
-                                                            {/* User Name */}
-                                                            <div className="font-bold text-slate-800 text-[10px] uppercase tracking-wider border-b border-slate-100 pb-1 mb-1">
-                                                                {resume.content.personalInfo.fullName}
-                                                            </div>
-
-                                                            {/* User Role */}
-                                                            {resume.content.personalInfo.role && (
-                                                                <div className="text-[8px] font-semibold text-blue-600 uppercase mb-1">
-                                                                    {resume.content.personalInfo.role}
-                                                                </div>
-                                                            )}
-
-                                                            {/* Fake Content Lines (Skeleton based on Real Data presence) */}
-                                                            <div className="space-y-1.5 opacity-60">
-                                                                {/* Summary or lines */}
-                                                                <div className="h-1 bg-slate-200 rounded-full w-full"></div>
-                                                                <div className="h-1 bg-slate-100 rounded-full w-5/6"></div>
-                                                                <div className="h-1 bg-slate-100 rounded-full w-4/6"></div>
-
-                                                                {/* Gap */}
-                                                                <div className="h-2"></div>
-
-                                                                {/* Experience Mockup */}
-                                                                <div className="h-1.5 bg-slate-200 rounded-full w-1/3 mb-1"></div>
-                                                                <div className="h-1 bg-slate-100 rounded-full w-full"></div>
-                                                                <div className="h-1 bg-slate-100 rounded-full w-3/4"></div>
-                                                            </div>
-                                                        </div>
-                                                    ) : (
-                                                        <>
-                                                            {/* Empty/Skeleton State */}
-                                                            <div className="h-3 w-full bg-blue-600/10 mb-2 rounded-sm"></div>
-                                                            <div className="space-y-2 p-1">
-                                                                <div className="h-2 w-1/2 bg-slate-200 rounded"></div>
-                                                                <div className="h-2 w-3/4 bg-slate-100 rounded"></div>
-                                                                <div className="h-2 w-full bg-slate-100 rounded"></div>
-                                                                <div className="h-2 w-full bg-slate-100 rounded"></div>
-                                                            </div>
-                                                        </>
-                                                    )}
-
-                                                    {/* Fade Out Effect at Bottom */}
-                                                    <div className="absolute bottom-0 left-0 w-full h-12 bg-gradient-to-t from-white to-transparent pointer-events-none"></div>
-                                                </div>
-                                            </div>
-
-                                            {/* Info Area */}
-                                            <div className="flex-1 p-4 md:p-5 flex flex-col justify-between relative bg-white dark:bg-slate-900 z-10 rounded-b-xl overflow-hidden">
-                                                <div>
-                                                    {renamingId === resume.id ? (
-                                                        <div className="mb-1 flex items-center gap-1" onClick={e => e.stopPropagation()}>
-                                                            <input
-                                                                type="text"
-                                                                value={tempTitle}
-                                                                onChange={(e) => setTempTitle(e.target.value)}
-                                                                className="w-full text-sm font-bold border rounded px-1 py-0.5 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                                                autoFocus
-                                                                onKeyDown={(e) => e.key === 'Enter' && saveRename(resume.id)}
-                                                            />
-                                                            <button onClick={() => saveRename(resume.id)} className="text-green-600 hover:bg-green-50 p-1 rounded"><CheckCircle size={14} /></button>
-                                                            <button onClick={cancelRenaming} className="text-red-500 hover:bg-red-50 p-1 rounded"><Trash2 size={14} /></button>
-                                                        </div>
-                                                    ) : (
-                                                        <div className="flex items-center gap-2 mb-1">
-                                                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${getLanguageInfo(resume.title).color}`}>
-                                                                {getLanguageInfo(resume.title).label}
-                                                            </span>
-                                                            <h3 className="font-bold text-slate-800 dark:text-white text-base truncate flex-1" title={resume.title}>
-                                                                {resume.title?.replace(/ /g, '\u00a0') || 'Sem Título'}
-                                                            </h3>
-                                                        </div>
-                                                    )}
-                                                    <div className="flex items-center gap-2 text-[10px] md:text-xs text-slate-400 mb-3">
-                                                        <Clock size={12} />
-                                                        <span>Atualizado em {formatDate(resume.updated_at)}</span>
-                                                    </div>
-
-                                                    {/* Strength Meter Mini */}
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                                                            <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${resume.strength || 0}%` }}></div>
-                                                        </div>
-                                                        <span className="text-[10px] font-bold text-emerald-600">{resume.strength || 0}%</span>
-                                                    </div>
-                                                </div>
-
-                                                <div className="flex gap-2 mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 relative z-20">
-                                                    {/* Edit Button - Disabled if Locked */}
-                                                    {isLocked ? (
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                toast.error('Limite excedido.', { description: 'Faça upgrade para editar este currículo.' })
-                                                            }}
-                                                            className="flex-1 h-8 md:h-9 flex items-center justify-center gap-2 bg-slate-100 text-slate-400 rounded-lg text-xs font-bold cursor-not-allowed uppercase tracking-wider"
-                                                        >
-                                                            <Lock size={14} /> Bloqueado
-                                                        </button>
-                                                    ) : (
-                                                        <button
-                                                            onClick={(e) => { e.stopPropagation(); navigate(`/editor?id=${resume.id}`) }}
-                                                            className="flex-1 h-8 md:h-9 flex items-center justify-center gap-2 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 transition-colors shadow-sm shadow-blue-200"
-                                                        >
-                                                            <Edit2 size={14} /> Editar
-                                                        </button>
-                                                    )}
-
-                                                    {/* Download Button - Always enabled */}
-                                                    <button
-                                                        onClick={(e) => { e.stopPropagation(); handleDownload(resume); }}
-                                                        className="h-8 md:h-9 flex items-center justify-center px-3 gap-2 bg-orange-50 text-orange-600 hover:text-orange-700 hover:bg-orange-100 rounded-lg transition-colors border border-orange-200 hover:border-orange-300 shadow-sm font-bold pointer-events-auto"
-                                                        title="Baixar PDF"
-                                                    >
-                                                        <Download size={14} />
-                                                        <span className="text-[10px] hidden xl:inline">PDF</span>
-                                                    </button>
-
-                                                    <button
-                                                        onClick={(e) => { e.stopPropagation(); handleDelete(resume.id); }}
-                                                        className="h-8 w-8 md:h-9 md:w-9 flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-100 pointer-events-auto"
-                                                        title="Excluir"
-                                                    >
-                                                        <Trash2 size={16} />
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
+                                            resume={resume}
+                                            isLocked={isLocked}
+                                            openMenuId={openMenuId}
+                                            onMenuClick={handleMenuClick}
+                                            renamingId={renamingId}
+                                            tempTitle={tempTitle}
+                                            setTempTitle={setTempTitle}
+                                            onStartRenaming={startRenaming}
+                                            onCancelRenaming={cancelRenaming}
+                                            onSaveRename={saveRename}
+                                            onDuplicate={handleDuplicate}
+                                            onDownload={handleDownload}
+                                            onTranslate={handleTranslate}
+                                            onDelete={handleDelete}
+                                        />
                                     )
                                 })}
                             </div>
