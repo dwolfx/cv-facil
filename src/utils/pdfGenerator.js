@@ -59,7 +59,75 @@ const drawRichText = (doc, text, x, startY, maxWidth, fontSize, color, isDryRun)
 };
 
 // Main Rendering Logic
-const renderResumeContent = (doc, resumeData, isDryRun) => {
+const renderResumeContent = (doc, resumeData, isDryRun, title = '') => {
+    // 1. Language Detection
+    const getLanguage = () => {
+        const t = title?.toUpperCase() || ''
+        if (t.includes('[EN]')) return 'EN'
+        if (t.includes('[ES]')) return 'ES'
+        return 'PT'
+    }
+
+    const lang = getLanguage()
+
+    // 2. Translations
+    const t = {
+        PT: {
+            personalInfo: 'Dados Pessoais',
+            email: 'E-mail:',
+            phone: 'Telefone:',
+            address: 'Endereço:',
+            nationality: 'Nacionalidade:',
+            linkedin: 'LinkedIn:',
+            portfolio: 'Portfólio:',
+            github: 'GitHub:',
+            youtube: 'YouTube:',
+            objective: 'Objetivo',
+            experience: 'Experiência',
+            education: 'Educação',
+            languages: 'IDIOMAS',
+            skills: 'HABILIDADES',
+            present: 'Presente',
+            months: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
+        },
+        EN: {
+            personalInfo: 'Personal Information',
+            email: 'Email:',
+            phone: 'Phone:',
+            address: 'Address:',
+            nationality: 'Nationality:',
+            linkedin: 'LinkedIn:',
+            portfolio: 'Portfolio:',
+            github: 'GitHub:',
+            youtube: 'YouTube:',
+            objective: 'Objective',
+            experience: 'Professional Experience',
+            education: 'Education',
+            languages: 'LANGUAGES',
+            skills: 'SKILLS',
+            present: 'Present',
+            months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+        },
+        ES: {
+            personalInfo: 'Datos Personales',
+            email: 'Correo:',
+            phone: 'Teléfono:',
+            address: 'Dirección:',
+            nationality: 'Nacionalidad:',
+            linkedin: 'LinkedIn:',
+            portfolio: 'Portafolio:',
+            github: 'GitHub:',
+            youtube: 'YouTube:',
+            objective: 'Objetivo',
+            experience: 'Experiencia Laboral',
+            education: 'Educación',
+            languages: 'IDIOMAS',
+            skills: 'HABILIDADES',
+            present: 'Actualidad',
+            months: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
+        }
+    }[lang]
+
     let y = 20; // Start Y
 
     // Helper: Section Title
@@ -127,24 +195,24 @@ const renderResumeContent = (doc, resumeData, isDryRun) => {
     y += 14; // Increased Header Gap
 
     // --- 2. Personal Info ---
-    drawSectionTitle("Dados Pessoais");
+    drawSectionTitle(t.personalInfo);
 
-    if (resumeData.personalInfo.email) drawField("E-mail:", resumeData.personalInfo.email);
-    if (resumeData.personalInfo.phone) drawField("Telefone:", resumeData.personalInfo.phone);
-    if (resumeData.personalInfo.nationality) drawField("Nacionalidade:", resumeData.personalInfo.nationality);
+    if (resumeData.personalInfo.email) drawField(t.email, resumeData.personalInfo.email);
+    if (resumeData.personalInfo.phone) drawField(t.phone, resumeData.personalInfo.phone);
+    if (resumeData.personalInfo.nationality) drawField(t.nationality, resumeData.personalInfo.nationality);
     if (resumeData.personalInfo.locations && resumeData.personalInfo.locations.length > 0) {
-        drawField("Endereço:", resumeData.personalInfo.locations.join(' • '));
+        drawField(t.address, resumeData.personalInfo.locations.join(' • '));
     }
-    if (resumeData.personalInfo.linkedin) drawField("LinkedIn:", resumeData.personalInfo.linkedin);
-    if (resumeData.personalInfo.portfolio) drawField("Portfólio:", resumeData.personalInfo.portfolio);
-    if (resumeData.personalInfo.github) drawField("GitHub:", resumeData.personalInfo.github);
-    if (resumeData.personalInfo.youtube) drawField("YouTube:", resumeData.personalInfo.youtube);
+    if (resumeData.personalInfo.linkedin) drawField(t.linkedin, resumeData.personalInfo.linkedin);
+    if (resumeData.personalInfo.portfolio) drawField(t.portfolio, resumeData.personalInfo.portfolio);
+    if (resumeData.personalInfo.github) drawField(t.github, resumeData.personalInfo.github);
+    if (resumeData.personalInfo.youtube) drawField(t.youtube, resumeData.personalInfo.youtube);
 
     y += 8; // Section Gap
 
     // --- 3. Summary ---
     if (resumeData.personalInfo.summary) {
-        drawSectionTitle("Objetivo");
+        drawSectionTitle(t.objective);
         // drawRichText handles font settings internally
         y = drawRichText(doc, resumeData.personalInfo.summary, contentX, y, CONTENT_WIDTH - 45, 10, [71, 85, 105], isDryRun);
         y += 10;
@@ -152,9 +220,9 @@ const renderResumeContent = (doc, resumeData, isDryRun) => {
 
     // --- 4. Experience ---
     const formatDate = (dateString, isCurrent) => {
-        if (isCurrent) return 'Presente';
+        if (isCurrent) return t.present;
         if (!dateString) return '';
-        const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+        const months = t.months;
         if (dateString.includes('-')) {
             const [year, month] = dateString.split('-');
             if (month && months[parseInt(month) - 1]) return `${months[parseInt(month) - 1]}/${year}`;
@@ -165,7 +233,7 @@ const renderResumeContent = (doc, resumeData, isDryRun) => {
     }
 
     if (resumeData.experience && resumeData.experience.length > 0) {
-        drawSectionTitle("Experiência");
+        drawSectionTitle(t.experience);
 
         resumeData.experience.forEach(exp => {
             const dateRange = `${formatDate(exp.startDate)} - ${formatDate(exp.endDate, exp.isCurrent)}`;
@@ -213,7 +281,7 @@ const renderResumeContent = (doc, resumeData, isDryRun) => {
 
     // --- 5. Education ---
     if (resumeData.education && resumeData.education.length > 0) {
-        drawSectionTitle("Educação");
+        drawSectionTitle(t.education);
 
         resumeData.education.forEach(edu => {
             const dateRange = `${formatDate(edu.startDate)} - ${formatDate(edu.endDate, edu.isCurrent)}`;
@@ -273,7 +341,7 @@ const renderResumeContent = (doc, resumeData, isDryRun) => {
             doc.setFontSize(8);
             if (!isDryRun) {
                 doc.setTextColor(30, 58, 138);
-                doc.text("IDIOMAS", langX, langY + 3, { align: "right" });
+                doc.text(t.languages, langX, langY + 3, { align: "right" });
             }
             langY += 10;
 
@@ -300,7 +368,7 @@ const renderResumeContent = (doc, resumeData, isDryRun) => {
             doc.setFontSize(8);
             if (!isDryRun) {
                 doc.setTextColor(30, 58, 138);
-                doc.text("HABILIDADES", contentX, rightColY + 3);
+                doc.text(t.skills, contentX, rightColY + 3);
             }
             rightColY += 10;
 
@@ -327,15 +395,12 @@ const renderResumeContent = (doc, resumeData, isDryRun) => {
     return y; // Total Height
 };
 
-export const generateResumePDF = (resumeData) => {
+export const generateResumePDF = (resumeData, title = '') => {
     // 1. Dry Run to calculate total height
-    // We create a temp doc just for text width calculations
     const tempDoc = new jsPDF();
-    const totalHeight = renderResumeContent(tempDoc, resumeData, true);
+    const totalHeight = renderResumeContent(tempDoc, resumeData, true, title);
 
     // 2. Create Real Doc with custom height
-    // Custom height based on content + margin.
-    // Removed strict A4 implementation to avoid whitespace chunks.
     const finalHeight = totalHeight + 20; // +20mm buffer
 
     // Create custom format
@@ -346,8 +411,9 @@ export const generateResumePDF = (resumeData) => {
     });
 
     // 3. Render Content
-    renderResumeContent(doc, resumeData, false);
+    renderResumeContent(doc, resumeData, false, title);
 
-    // 4. Save
-    doc.save(`${resumeData.personalInfo.fullName || 'curriculo'}.pdf`);
+    // 4. Save (Clean filename)
+    const cleanTitle = title.replace(/[\[\]]/g, '').trim() || 'curriculo';
+    doc.save(`${cleanTitle}.pdf`);
 };

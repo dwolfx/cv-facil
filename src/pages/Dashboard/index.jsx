@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react'
 import {
-    ChevronDown, PlusCircle, MoreVertical, Edit2, Trash2, Clock, CheckCircle, Loader2, Download, Lock, Copy
+    ChevronDown, PlusCircle, MoreVertical, Edit2, Trash2, Clock, CheckCircle, Loader2, Download, Lock, Copy, Languages, Globe
 } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -13,6 +13,7 @@ import { supabase } from '../../services/supabaseClient'
 import { useAuth } from '../../contexts/AuthContext'
 import { useUserPlan } from '../../hooks/useUserPlan'
 import { generateResumePDF } from '../../utils/pdfGenerator'
+import { translateResume } from '../../services/translationService'
 
 const Dashboard = () => {
     const navigate = useNavigate()
@@ -149,10 +150,72 @@ const Dashboard = () => {
         }
     }
 
+    const handleTranslate = async (e, resume, targetLang) => {
+        e.stopPropagation()
+        setOpenMenuId(null)
+
+        if (!features.isPremium) {
+            return toast.error('Recurso Exclusivo!', {
+                description: 'Tradução automática está disponível apenas para assinantes Premium.'
+            })
+        }
+
+        if (resumes.length >= planLimit) {
+            return toast.error('Limite Excedido!', {
+                description: 'Apague ou arquive algum currículo para criar uma versão traduzida.'
+            })
+        }
+
+        const langName = targetLang.startsWith('EN') ? 'Inglês' : 'Espanhol'
+        const toastId = toast.loading(`Traduzindo para ${langName}...`)
+
+        try {
+            // 1. Translate content
+            const translatedContent = await translateResume(resume.content, targetLang)
+
+            // 2. Prepare title
+            const baseTitle = resume.title || 'Meu Currículo'
+            const displayLang = targetLang.startsWith('EN') ? 'EN' : targetLang
+            const newTitle = `${baseTitle} [${displayLang}]`
+
+            // 3. Save as new resume
+            const { data, error } = await supabase
+                .from('resumes')
+                .insert({
+                    user_id: user.id,
+                    title: newTitle,
+                    content: translatedContent,
+                    strength: resume.strength,
+                    updated_at: new Date()
+                })
+                .select()
+                .single()
+
+            if (error) throw error
+
+            setResumes([data, ...resumes])
+            toast.success(`Currículo traduzido para ${langName}!`, { id: toastId })
+
+            // 4. Redirect to editor for review
+            navigate(`/editor?id=${data.id}`)
+        } catch (error) {
+            console.error(error)
+            toast.error('Erro ao traduzir currículo.', { id: toastId })
+        }
+    }
+
     // Format Date Helper
     const formatDate = (dateString) => {
         if (!dateString) return ''
         return new Date(dateString).toLocaleDateString('pt-BR')
+    }
+
+    const getLanguageInfo = (title = '') => {
+        const upTitle = title.toUpperCase()
+        if (upTitle.includes('[EN]')) return { label: 'EN', color: 'bg-blue-50 text-blue-600 border-blue-100' }
+        if (upTitle.includes('[ES]')) return { label: 'ES', color: 'bg-yellow-50 text-yellow-600 border-yellow-100' }
+        if (upTitle.includes('[PTBR]')) return { label: 'PT-BR', color: 'bg-emerald-50 text-emerald-600 border-emerald-100' }
+        return { label: 'PT-BR', color: 'bg-slate-50 text-slate-500 border-slate-100' } // Default
     }
 
     useEffect(() => {
@@ -279,7 +342,7 @@ const Dashboard = () => {
                                         <div
                                             key={resume.id}
                                             onClick={() => !isLocked && navigate(`/editor?id=${resume.id}`)}
-                                            className={`bg-white dark:bg-slate-900 border ${isLocked ? 'border-slate-200 dark:border-slate-800 opacity-75 cursor-not-allowed' : 'border-slate-200 dark:border-slate-800 cursor-pointer'} rounded-xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group flex flex-col h-[280px] md:h-[320px] relative`}
+                                            className={`bg-white dark:bg-slate-900 border ${isLocked ? 'border-slate-200 dark:border-slate-800 opacity-75 cursor-not-allowed' : 'border-slate-200 dark:border-slate-800 cursor-pointer'} rounded-xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group flex flex-col h-[360px] md:h-[420px] relative`}
                                         >
 
                                             {/* Actions Overlay / Dropdown - MOVED HERE (Outside overflow-hidden) */}
@@ -294,31 +357,101 @@ const Dashboard = () => {
                                                         </button>
 
                                                         {openMenuId === resume.id && (
-                                                            <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-slate-200 rounded-lg shadow-xl overflow-hidden animate-in fade-in zoom-in-95 z-50 flex flex-col">
+                                                            <div className="absolute right-0 top-full mt-2 w-72 max-h-[80vh] overflow-y-auto bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200/60 dark:border-slate-800 rounded-xl shadow-[0_20px_50px_-12px_rgba(0,0,0,0.2)] animate-in fade-in zoom-in-95 slide-in-from-top-2 z-50 flex flex-col p-2.5 gap-1.5 custom-scrollbar">
+                                                                
+                                                                {/* CRUD Actions */}
+                                                                <div className="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Edição</div>
                                                                 <button
                                                                     onClick={(e) => { e.stopPropagation(); navigate(`/editor?id=${resume.id}`); }}
-                                                                    className="w-full text-left px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2 border-b border-slate-100"
+                                                                    className="group w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg flex items-center gap-3 transition-all active:scale-[0.98]"
                                                                 >
-                                                                    <Edit2 size={14} /> Editar
+                                                                    <div className="p-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-md group-hover:scale-110 transition-transform">
+                                                                        <Edit2 size={14} />
+                                                                    </div>
+                                                                    <div className="flex flex-col">
+                                                                        <span className="font-semibold">Editar</span>
+                                                                        <span className="text-[10px] text-slate-400">Conteúdo e design</span>
+                                                                    </div>
                                                                 </button>
+
                                                                 <button
-                                                                    onClick={(e) => startRenaming(e, resume)}
-                                                                    className="w-full text-left px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2 border-b border-slate-100"
+                                                                    onClick={(e) => { e.stopPropagation(); startRenaming(e, resume); }}
+                                                                    className="group w-full text-left px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg flex items-center gap-3 transition-all active:scale-[0.98]"
                                                                 >
-                                                                    <Edit2 size={14} className="opacity-0" />
-                                                                    Renomear
+                                                                    <div className="p-1.5 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-md group-hover:scale-110 transition-transform">
+                                                                        <MoreVertical size={14} />
+                                                                    </div>
+                                                                    <div className="flex flex-col">
+                                                                        <span className="font-semibold">Renomear</span>
+                                                                        <span className="text-[10px] text-slate-400">Título do documento</span>
+                                                                    </div>
                                                                 </button>
+
+                                                                {/* File Operations */}
+                                                                <div className="px-3 py-1.5 mt-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-t border-slate-100 dark:border-slate-800">Arquivo</div>
                                                                 <button
                                                                     onClick={(e) => handleDuplicate(e, resume)}
-                                                                    className="w-full text-left px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2 border-b border-slate-100"
+                                                                    className="group w-full text-left px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg flex items-center gap-3 transition-all active:scale-[0.98]"
                                                                 >
-                                                                    <Copy size={14} /> Duplicar
+                                                                    <div className="p-1.5 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:emerald-400 rounded-md group-hover:scale-110 transition-transform">
+                                                                        <Copy size={14} />
+                                                                    </div>
+                                                                    <div className="flex flex-col">
+                                                                        <span className="font-semibold">Duplicar</span>
+                                                                        <span className="text-[10px] text-slate-400">Criar uma cópia</span>
+                                                                    </div>
                                                                 </button>
+
+                                                                <button
+                                                                    onClick={(e) => { e.stopPropagation(); handleDownload(resume); }}
+                                                                    className="group w-full text-left px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg flex items-center gap-3 transition-all active:scale-[0.98]"
+                                                                >
+                                                                    <div className="p-1.5 bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-md group-hover:scale-110 transition-transform">
+                                                                        <Download size={14} />
+                                                                    </div>
+                                                                    <div className="flex flex-col">
+                                                                        <span className="font-semibold">Baixar PDF</span>
+                                                                        <span className="text-[10px] text-slate-400">Exportação final</span>
+                                                                    </div>
+                                                                </button>
+
+                                                                {/* Localization */}
+                                                                <div className="px-3 py-1.5 mt-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-t border-slate-100 dark:border-slate-800">Tradução</div>
+                                                                <button
+                                                                    onClick={(e) => handleTranslate(e, resume, 'EN-US')}
+                                                                    className="group w-full text-left px-3 py-2 text-sm text-blue-700 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg flex items-center gap-3 transition-all active:scale-[0.98]"
+                                                                >
+                                                                    <div className="p-1.5 bg-blue-100 dark:bg-blue-800/50 text-blue-700 dark:text-blue-300 rounded-md group-hover:scale-110 transition-transform">
+                                                                        <Languages size={14} />
+                                                                    </div>
+                                                                    <div className="flex flex-col">
+                                                                        <span className="font-semibold">English [EN]</span>
+                                                                        <span className="text-[10px] text-blue-400">Traduzir para Inglês</span>
+                                                                    </div>
+                                                                </button>
+
+                                                                <button
+                                                                    onClick={(e) => handleTranslate(e, resume, 'ES')}
+                                                                    className="group w-full text-left px-3 py-2 text-sm text-orange-700 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg flex items-center gap-3 transition-all active:scale-[0.98]"
+                                                                >
+                                                                    <div className="p-1.5 bg-orange-100 dark:bg-orange-800/50 text-orange-700 dark:text-orange-300 rounded-md group-hover:scale-110 transition-transform">
+                                                                        <Languages size={14} />
+                                                                    </div>
+                                                                    <div className="flex flex-col">
+                                                                        <span className="font-semibold">Español [ES]</span>
+                                                                        <span className="text-[10px] text-orange-400">Traduzir para Espanhol</span>
+                                                                    </div>
+                                                                </button>
+
+                                                                <div className="my-1 border-t border-slate-100 dark:border-slate-800"></div>
                                                                 <button
                                                                     onClick={(e) => { e.stopPropagation(); handleDelete(resume.id); }}
-                                                                    className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                                                                    className="group w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg flex items-center gap-3 transition-all active:scale-[0.98]"
                                                                 >
-                                                                    <Trash2 size={14} /> Excluir
+                                                                    <div className="p-1.5 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-md group-hover:scale-110 transition-transform">
+                                                                        <Trash2 size={14} />
+                                                                    </div>
+                                                                    <span className="font-semibold">Remover</span>
                                                                 </button>
                                                             </div>
                                                         )}
@@ -336,7 +469,7 @@ const Dashboard = () => {
                                             )}
 
                                             {/* Preview Area (Top 60%) */}
-                                            <div className={`h-[55%] md:h-[60%] bg-slate-100 dark:bg-slate-800 relative overflow-hidden flex items-start justify-center pt-6 ${!isLocked && 'group-hover:bg-slate-100/50'} transition-colors`}>
+                                            <div className={`h-[50%] md:h-[55%] bg-slate-100 dark:bg-slate-800 relative overflow-hidden flex items-start justify-center pt-6 ${!isLocked && 'group-hover:bg-slate-100/50'} transition-colors rounded-t-xl`}>
                                                 <div className={`w-[85%] md:w-[80%] h-full bg-white shadow-lg rounded-t-sm origin-top mx-auto pointer-events-none transform ${!isLocked && 'group-hover:scale-105'} transition-transform duration-500 border-t border-x border-slate-200/50 flex flex-col p-4 overflow-hidden relative ${isLocked && 'grayscale opacity-75'}`}>
                                                     {/* Paper Texture / Content */}
                                                     {resume.content?.personalInfo?.fullName ? (
@@ -388,7 +521,7 @@ const Dashboard = () => {
                                             </div>
 
                                             {/* Info Area */}
-                                            <div className="flex-1 p-4 md:p-5 flex flex-col justify-between relative bg-white dark:bg-slate-900 z-10">
+                                            <div className="flex-1 p-4 md:p-5 flex flex-col justify-between relative bg-white dark:bg-slate-900 z-10 rounded-b-xl overflow-hidden">
                                                 <div>
                                                     {renamingId === resume.id ? (
                                                         <div className="mb-1 flex items-center gap-1" onClick={e => e.stopPropagation()}>
@@ -404,7 +537,14 @@ const Dashboard = () => {
                                                             <button onClick={cancelRenaming} className="text-red-500 hover:bg-red-50 p-1 rounded"><Trash2 size={14} /></button>
                                                         </div>
                                                     ) : (
-                                                        <h3 className="font-bold text-slate-800 dark:text-white text-base mb-1 truncate" title={resume.title}>{resume.title || 'Sem Título'}</h3>
+                                                        <div className="flex items-center gap-2 mb-1">
+                                                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${getLanguageInfo(resume.title).color}`}>
+                                                                {getLanguageInfo(resume.title).label}
+                                                            </span>
+                                                            <h3 className="font-bold text-slate-800 dark:text-white text-base truncate flex-1" title={resume.title}>
+                                                                {resume.title?.replace(/ /g, '\u00a0') || 'Sem Título'}
+                                                            </h3>
+                                                        </div>
                                                     )}
                                                     <div className="flex items-center gap-2 text-[10px] md:text-xs text-slate-400 mb-3">
                                                         <Clock size={12} />

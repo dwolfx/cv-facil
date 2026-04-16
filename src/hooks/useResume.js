@@ -28,6 +28,7 @@ const initialResumeState = {
 export const useResume = (user, resumeId) => {
     const navigate = useNavigate()
     const [resumeData, setResumeData] = useState(initialResumeState)
+    const [title, setTitle] = useState('')
     const [lastSavedData, setLastSavedData] = useState(initialResumeState)
     const [loading, setLoading] = useState(!!resumeId)
     const [submitting, setSubmitting] = useState(false)
@@ -96,6 +97,7 @@ export const useResume = (user, resumeId) => {
                         }
                         setResumeData(mergedContent)
                         setLastSavedData(mergedContent)
+                        setTitle(data.title || '')
                         fetchedId.current = resumeId
                     }
                 } catch (error) {
@@ -140,7 +142,7 @@ export const useResume = (user, resumeId) => {
         try {
             const resumeToSave = {
                 user_id: user.id,
-                title: resumeData.personalInfo.role || 'Sem Título',
+                title: title || resumeData.personalInfo.role || 'Sem Título',
                 content: resumeData,
                 strength: strength,
                 updated_at: new Date()
@@ -218,7 +220,7 @@ export const useResume = (user, resumeId) => {
     const handleExportPDF = () => {
         const toastId = toast.loading('Gerando PDF...')
         try {
-            generateResumePDF(resumeData)
+            generateResumePDF(resumeData, title)
             toast.success('Download iniciado!', { id: toastId })
         } catch (error) {
             console.error(error)
@@ -261,6 +263,8 @@ export const useResume = (user, resumeId) => {
     return {
         resumeData,
         setResumeData, // Exposed if needed for complex updates not covered helpers
+        title,
+        setTitle,
         loading,
         submitting,
         strength,

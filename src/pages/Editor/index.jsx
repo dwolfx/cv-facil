@@ -31,6 +31,7 @@ const Editor = () => {
     // Custom Hooks
     const {
         resumeData,
+        title,
         loading,
         submitting,
         strength,
@@ -167,7 +168,7 @@ const Editor = () => {
                                 }}
                                 className="bg-white shadow-xl min-h-[297mm]"
                             >
-                                <ResumePreview resumeData={resumeData} />
+                                <ResumePreview resumeData={resumeData} title={title} />
                             </div>
                         </div>
                     </main>
