@@ -1,6 +1,10 @@
 {
     "rewrites": [
         {
+            "source": "/api-deepl/(.*)",
+            "destination": "https://api-free.deepl.com/$1"
+        },
+        {
             "source": "/(.*)",
             "destination": "/index.html"
         }
