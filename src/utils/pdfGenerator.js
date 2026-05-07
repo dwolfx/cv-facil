@@ -162,8 +162,6 @@ const renderResumeContent = (doc, resumeData, isDryRun, title = '') => {
 
         // Value Font
         doc.setFont("helvetica", "normal");
-        // Maintain size 9 (defaulted from above if not changed) or explicitly set if needed. 
-        // Logic assumed 9 previously.
 
         if (!isDryRun) {
             doc.setTextColor(71, 85, 105);
@@ -189,9 +187,6 @@ const renderResumeContent = (doc, resumeData, isDryRun, title = '') => {
 
     const role = resumeData.personalInfo.role || "Cargo";
     if (!isDryRun) doc.text(role, MARGIN, y);
-    // Even in dry run, we assume 1 line for role if not wrapped? 
-    // Role usually doesn't wrap but we should count space accurately if we wanted perfectness.
-    // For now, fixed increment is fine.
     y += 14; // Increased Header Gap
 
     // --- 2. Personal Info ---
@@ -238,22 +233,10 @@ const renderResumeContent = (doc, resumeData, isDryRun, title = '') => {
         resumeData.experience.forEach(exp => {
             const dateRange = `${formatDate(exp.startDate)} - ${formatDate(exp.endDate, exp.isCurrent)}`;
 
-            // Left Column
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(9);
-            if (!isDryRun) {
-                doc.setTextColor(69, 96, 181);
-                doc.text(exp.location || '', labelX, y);
-            }
+            // Draw RIGHT column first (position, company) so text extractors read
+            // the most important info first in the content stream order.
+            // Visual positions remain unchanged — only draw order changes.
 
-            doc.setFont("helvetica", "italic");
-            doc.setFontSize(9);
-            if (!isDryRun) {
-                doc.setTextColor(148, 163, 184);
-                doc.text(dateRange, labelX, y + 5);
-            }
-
-            // Right Column
             doc.setFont("helvetica", "bold");
             doc.setFontSize(11);
             if (!isDryRun) {
@@ -268,13 +251,28 @@ const renderResumeContent = (doc, resumeData, isDryRun, title = '') => {
                 doc.text(exp.company || 'Empresa', contentX, y + 5);
             }
 
+            // Draw LEFT column second (location, dates)
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(9);
+            if (!isDryRun) {
+                doc.setTextColor(69, 96, 181);
+                doc.text(exp.location || '', labelX, y);
+            }
+
+            doc.setFont("helvetica", "italic");
+            doc.setFontSize(9);
+            if (!isDryRun) {
+                doc.setTextColor(148, 163, 184);
+                doc.text(dateRange, labelX, y + 5);
+            }
+
             y += 10;
-            y += 5; // Increased Gap between Company and Description
+            y += 5; // Gap between header rows and description
 
             if (exp.description) {
                 y = drawRichText(doc, exp.description, contentX, y, CONTENT_WIDTH - 45, 10, [71, 85, 105], isDryRun);
             }
-            y += 10; // Increased Item Gap
+            y += 10; // Item Gap
         });
         y += 5;
     }
@@ -286,20 +284,7 @@ const renderResumeContent = (doc, resumeData, isDryRun, title = '') => {
         resumeData.education.forEach(edu => {
             const dateRange = `${formatDate(edu.startDate)} - ${formatDate(edu.endDate, edu.isCurrent)}`;
 
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(9);
-            if (!isDryRun) {
-                doc.setTextColor(69, 96, 181);
-                doc.text(edu.location || '', labelX, y);
-            }
-
-            doc.setFont("helvetica", "italic");
-            doc.setFontSize(9);
-            if (!isDryRun) {
-                doc.setTextColor(148, 163, 184);
-                doc.text(dateRange, labelX, y + 5);
-            }
-
+            // Draw RIGHT column first (degree, school)
             doc.setFont("helvetica", "bold");
             doc.setFontSize(11);
             if (!isDryRun) {
@@ -314,7 +299,22 @@ const renderResumeContent = (doc, resumeData, isDryRun, title = '') => {
                 doc.text(edu.school || 'Instituição', contentX, y + 5);
             }
 
-            y += 14; // Increased Item Gap
+            // Draw LEFT column second (location, dates)
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(9);
+            if (!isDryRun) {
+                doc.setTextColor(69, 96, 181);
+                doc.text(edu.location || '', labelX, y);
+            }
+
+            doc.setFont("helvetica", "italic");
+            doc.setFontSize(9);
+            if (!isDryRun) {
+                doc.setTextColor(148, 163, 184);
+                doc.text(dateRange, labelX, y + 5);
+            }
+
+            y += 14; // Item Gap
         });
         y += 5;
     }
@@ -403,17 +403,28 @@ export const generateResumePDF = (resumeData, title = '') => {
     // 2. Create Real Doc with custom height
     const finalHeight = totalHeight + 20; // +20mm buffer
 
-    // Create custom format
     const doc = new jsPDF({
         orientation: "portrait",
         unit: "mm",
         format: [210, finalHeight]
     });
 
-    // 3. Render Content
+    // 3. Embed structured data in PDF metadata for AI round-trip parsing.
+    // When this PDF is re-imported into CV Fácil, the parser reads this
+    // metadata directly — no regex needed, no data loss.
+    const cleanTitle = title.replace(/[\[\]]/g, '').trim() || 'curriculo';
+    // encodeURIComponent ensures parentheses, backslashes and other chars
+    // that would break jsPDF's literal string encoding are safely escaped.
+    doc.setProperties({
+        title: cleanTitle,
+        creator: 'CV Fácil',
+        subject: cleanTitle,
+        keywords: 'cvfacil-structured:' + encodeURIComponent(JSON.stringify(resumeData))
+    });
+
+    // 4. Render Content
     renderResumeContent(doc, resumeData, false, title);
 
-    // 4. Save (Clean filename)
-    const cleanTitle = title.replace(/[\[\]]/g, '').trim() || 'curriculo';
+    // 5. Save
     doc.save(`${cleanTitle}.pdf`);
 };

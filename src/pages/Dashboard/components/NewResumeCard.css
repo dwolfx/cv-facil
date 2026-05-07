@@ -68,3 +68,21 @@
   background-color: var(--bg-glass);
   backdrop-filter: blur(8px);
 }
+
+/* Disabled / plan limit state */
+.new-resume-card--disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.new-resume-card--disabled:hover {
+  border-color: var(--border-color) !important;
+  background-color: var(--bg-card) !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.new-resume-card-icon-container--disabled {
+  background-color: var(--slate-100);
+  color: var(--slate-400);
+}

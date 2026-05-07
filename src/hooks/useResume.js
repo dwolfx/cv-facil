@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react'
-import { useNavigate, useBlocker } from 'react-router-dom'
+import { useNavigate, useBlocker, useSearchParams } from 'react-router-dom'
 import { supabase } from '../services/supabaseClient'
 import { toast } from 'sonner'
 import { parseResume } from '../services/localPdfParser'
@@ -27,6 +27,8 @@ const initialResumeState = {
 
 export const useResume = (user, resumeId) => {
     const navigate = useNavigate()
+    const [searchParams] = useSearchParams()
+    const isNew = searchParams.get('new') === '1'
     const [resumeData, setResumeData] = useState(initialResumeState)
     const [title, setTitle] = useState('')
     const [lastSavedData, setLastSavedData] = useState(initialResumeState)
@@ -269,6 +271,7 @@ export const useResume = (user, resumeId) => {
         submitting,
         strength,
         isDirty,
+        isNew,
         blocker,
         handleSave,
         handleImportResume,

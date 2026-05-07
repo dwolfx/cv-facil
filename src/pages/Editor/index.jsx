@@ -36,6 +36,7 @@ const Editor = () => {
         submitting,
         strength,
         isDirty,
+        isNew,
         blocker,
         handleSave,
         handleImportResume,
@@ -203,7 +204,12 @@ const Editor = () => {
                 <UnsavedChangesModal
                     isOpen={true}
                     onCancel={() => blocker.reset()}
-                    onConfirm={() => blocker.proceed()}
+                    onConfirm={async () => {
+                        if (isNew && resumeId) {
+                            try { await supabase.from('resumes').delete().eq('id', resumeId) } catch (_) {}
+                        }
+                        blocker.proceed()
+                    }}
                     onSave={() => handleSave(true)}
                 />
             )}

@@ -56,7 +56,7 @@ const PublicRoute = ({ children }) => {
 const RootLayout = () => {
   return (
     <AuthProvider>
-      <Toaster richColors position="top-center" />
+      <Toaster richColors position="bottom-right" mobilePosition="bottom-center" />
       <Outlet />
     </AuthProvider>
   )

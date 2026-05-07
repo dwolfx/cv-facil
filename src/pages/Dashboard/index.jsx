@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect } from 'react'
-import { Loader2 } from 'lucide-react'
+import React, { useState, useEffect, useRef } from 'react'
+import { Loader2, Trash2, FileText, UploadCloud, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import Sidebar from '../../components/Sidebar'
@@ -11,6 +11,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useUserPlan } from '../../hooks/useUserPlan'
 import { generateResumePDF } from '../../utils/pdfGenerator'
 import { translateResume } from '../../services/translationService'
+import { parseResume } from '../../services/localPdfParser'
 
 // Modular Components
 import ResumeCard from './components/ResumeCard'
@@ -29,6 +30,11 @@ const Dashboard = () => {
     const [openMenuId, setOpenMenuId] = useState(null)
     const [renamingId, setRenamingId] = useState(null)
     const [tempTitle, setTempTitle] = useState('')
+    const [showNewModal, setShowNewModal] = useState(false)
+    const [isImporting, setIsImporting] = useState(false)
+    const fileInputRef = useRef(null)
+
+    const isAtLimit = resumes.length >= planLimit
 
     const handleDownload = (resume) => {
         if (!resume.content) return toast.error('Conteúdo vazio ou inválido.')
@@ -241,45 +247,83 @@ const Dashboard = () => {
         }
     }
 
-    const handleCreateNew = async () => {
-        if (resumes.length >= planLimit) {
-            toast.error('Limite do Plano Gratuito atingido!', {
-                description: 'Você já possui 2 currículos criados. Faça upgrade para criar ilimitados.'
-            })
-            return
-        }
-
+    const handleCreateBlank = async () => {
+        setShowNewModal(false)
         const toastId = toast.loading('Criando novo currículo...')
-
         try {
-            // Minimal initial content
             const initialContent = {
-                personalInfo: { fullName: '', role: '', summary: '', locations: [], email: '', phone: '', linkedin: '', portfolio: '' },
+                personalInfo: { fullName: '', role: '', summary: '', locations: [], email: '', phone: '', linkedin: '', portfolio: '', github: '', youtube: '', nationality: '' },
                 experience: [],
                 education: [],
                 skills: [],
                 languages: []
             }
-
             const { data, error } = await supabase
                 .from('resumes')
-                .insert({
-                    user_id: user.id,
-                    title: 'Meu Currículo',
-                    content: initialContent,
-                    strength: 0,
-                    updated_at: new Date()
-                })
+                .insert({ user_id: user.id, title: 'Meu Currículo', content: initialContent, strength: 0, updated_at: new Date() })
                 .select()
                 .single()
-
             if (error) throw error
-
             toast.success('Currículo criado!', { id: toastId })
-            navigate(`/editor?id=${data.id}`)
+            navigate(`/editor?id=${data.id}&new=1`)
         } catch (error) {
             console.error(error)
             toast.error('Erro ao criar currículo.', { id: toastId })
+        }
+    }
+
+    const handleImportFile = async (e) => {
+        const file = e.target.files[0]
+        if (!file) return
+        e.target.value = ''
+
+        setIsImporting(true)
+        const toastId = toast.loading('Lendo currículo...')
+        try {
+            const parsed = await parseResume(file)
+
+            const content = {
+                personalInfo: {
+                    fullName: '', role: '', email: '', phone: '',
+                    linkedin: '', portfolio: '', github: '', youtube: '',
+                    locations: [], nationality: '', summary: '',
+                    ...parsed.personalInfo
+                },
+                experience: (parsed.experience || []).map((exp, i) => ({
+                    id: Date.now() + i,
+                    company: '', position: '', location: '',
+                    startDate: '', endDate: '', isCurrent: false, description: '',
+                    ...exp
+                })),
+                education: (parsed.education || []).map((edu, i) => ({
+                    id: Date.now() + i + 100,
+                    school: '', degree: '', field: '',
+                    location: '', startDate: '', endDate: '', isCurrent: false,
+                    ...edu
+                })),
+                skills: parsed.skills || [],
+                languages: parsed.languages || []
+            }
+
+            const title = parsed.personalInfo?.fullName
+                ? `Currículo de ${parsed.personalInfo.fullName}`
+                : 'Currículo Importado'
+
+            const { data, error } = await supabase
+                .from('resumes')
+                .insert({ user_id: user.id, title, content, strength: 0, updated_at: new Date() })
+                .select()
+                .single()
+            if (error) throw error
+
+            toast.success('Currículo importado!', { id: toastId })
+            setShowNewModal(false)
+            navigate(`/editor?id=${data.id}&new=1`)
+        } catch (error) {
+            console.error(error)
+            toast.error(error.message || 'Erro ao importar currículo.', { id: toastId })
+        } finally {
+            setIsImporting(false)
         }
     }
 
@@ -322,8 +366,12 @@ const Dashboard = () => {
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
 
-                                 {/* Create New Card */}
-                                <NewResumeCard onClick={handleCreateNew} />
+                                {/* Create New Card */}
+                                <NewResumeCard
+                                    onClick={() => setShowNewModal(true)}
+                                    disabled={isAtLimit}
+                                    onUpgradeClick={() => navigate('/upgrade')}
+                                />
 
                                 {/* Resume Cards */}
                                 {resumes.map((resume, index) => {
@@ -353,6 +401,62 @@ const Dashboard = () => {
                         )}
                     </div>
                 </main>
+
+                {/* Hidden file input for import */}
+                <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".pdf,.docx,.txt"
+                    className="hidden"
+                    onChange={handleImportFile}
+                />
+
+                {/* New Resume Modal */}
+                {showNewModal && (
+                    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setShowNewModal(false)}>
+                        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-100 dark:border-slate-800" onClick={e => e.stopPropagation()}>
+                            <div className="p-6">
+                                <div className="flex items-center justify-between mb-5">
+                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">Novo Currículo</h3>
+                                    <button onClick={() => setShowNewModal(false)} className="text-slate-400 hover:text-slate-600 transition-colors">
+                                        <X size={20} />
+                                    </button>
+                                </div>
+
+                                <div className="flex flex-col gap-3">
+                                    {/* Blank */}
+                                    <button
+                                        onClick={handleCreateBlank}
+                                        className="flex items-center gap-4 p-4 rounded-xl border-2 border-slate-100 hover:border-primary hover:bg-primary-light transition-all group text-left"
+                                    >
+                                        <div className="w-12 h-12 rounded-xl bg-primary-light text-primary flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
+                                            <FileText size={22} />
+                                        </div>
+                                        <div>
+                                            <p className="font-bold text-slate-800 dark:text-white text-sm">Criar em branco</p>
+                                            <p className="text-xs text-slate-500 mt-0.5">Comece do zero e preencha seus dados</p>
+                                        </div>
+                                    </button>
+
+                                    {/* Import */}
+                                    <button
+                                        onClick={() => fileInputRef.current?.click()}
+                                        disabled={isImporting}
+                                        className="flex items-center gap-4 p-4 rounded-xl border-2 border-slate-100 hover:border-primary hover:bg-primary-light transition-all group text-left disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        <div className="w-12 h-12 rounded-xl bg-primary-light text-primary flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
+                                            {isImporting ? <Loader2 size={22} className="animate-spin" /> : <UploadCloud size={22} />}
+                                        </div>
+                                        <div>
+                                            <p className="font-bold text-slate-800 dark:text-white text-sm">Importar currículo</p>
+                                            <p className="text-xs text-slate-500 mt-0.5">PDF, DOCX ou TXT — preenchemos para você</p>
+                                        </div>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Custom Delete Modal */}
                 {resumeToDelete && (
