@@ -66,8 +66,7 @@ const router = createBrowserRouter([
     element: <RootLayout />,
     children: [
       { path: '/', element: <PublicRoute><Landing /></PublicRoute> },
-      { path: '/login', element: <PublicRoute><Auth defaultMode="register" /></PublicRoute> },
-      { path: '/register', element: <PublicRoute><Auth defaultMode="register" /></PublicRoute> },
+      { path: '/login', element: <PublicRoute><Auth defaultMode="login" /></PublicRoute> },
       { path: '/forgot-password', element: <PublicRoute><ForgotPassword /></PublicRoute> },
       { path: '/reset-password', element: <ResetPassword /> },
       { path: '/terms', element: <Terms /> },

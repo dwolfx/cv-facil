@@ -28,10 +28,10 @@ const Landing = () => {
                         <FileText size={28} style={{ color: 'var(--primary)' }} />
                         CV<span>Fácil</span>
                     </div>
-                    <div style={{ display: 'flex', gap: '1rem' }}>
-                        <Link to="/login" className="btn btn-secondary">Entrar</Link>
-                        <Link to="/register" className="btn btn-primary" style={{ background: 'var(--gradient-main)', border: 'none' }}>
-                            Criar Grátis
+                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                        <Link to="/login?mode=login" className="btn btn-secondary">Entrar</Link>
+                        <Link to="/login?mode=register" className="btn btn-primary" style={{ background: 'var(--gradient-main)', border: 'none' }}>
+                            Começar Grátis
                         </Link>
                     </div>
                 </nav>
@@ -47,13 +47,11 @@ const Landing = () => {
                             Crie currículos que os recrutadores e robôs (ATS) amam.
                             Design premium, tradução automática e exportação perfeita em minutos.
                         </p>
-                        <div className="hero-actions">
-                            <Link to="/register" className="btn btn-primary" style={{ background: 'var(--gradient-main)', border: 'none', padding: '1rem 2rem', fontSize: '1.1rem' }}>
-                                Começar Agora
+                        <div className="hero-actions" style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginBottom: '3rem' }}>
+                            <Link to="/login?mode=register" className="btn btn-primary" style={{ background: 'var(--gradient-main)', border: 'none', padding: '1rem 2rem', fontSize: '1.1rem' }}>
+                                Começar Grátis
                             </Link>
-                            <a href="#how-it-works" className="btn btn-secondary">
-                                Como Funciona
-                            </a>
+                            <a href="#features" className="btn btn-secondary" style={{ padding: '1rem 2rem', fontSize: '1.1rem' }}>Conhecer Recursos</a>
                         </div>
                         <div style={{ marginTop: '1.5rem', display: 'flex', gap: '1.5rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
                             <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Check size={16} color="var(--primary)" /> Sem cartão de crédito</span>
@@ -245,7 +243,7 @@ const Landing = () => {
                                 </li>
                             </ul>
 
-                            <Link to="/register" className="btn btn-secondary" style={{ width: '100%', justifyContent: 'center' }}>
+                            <Link to="/login?mode=register" className="btn btn-secondary" style={{ width: '100%', justifyContent: 'center' }}>
                                 Começar Grátis
                             </Link>
                         </div>
@@ -305,7 +303,7 @@ const Landing = () => {
                                 </button>
                             </div>
 
-                            <Link to="/register" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', background: 'white', color: 'var(--primary)', border: 'none', padding: '1rem', fontWeight: 'bold', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
+                            <Link to="/login?mode=register" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', background: 'white', color: 'var(--primary)', border: 'none', padding: '1rem', fontWeight: 'bold', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
                                 Assinar Agora
                             </Link>
                         </div>
@@ -396,8 +394,8 @@ const Landing = () => {
                         <ul style={{ listStyle: 'none', padding: 0, color: '#94a3b8', spaceY: '0.8rem' }}>
                             <li style={{ marginBottom: '0.8rem' }}><a href="#pricing" style={{ color: 'inherit', textDecoration: 'none' }}>Planos</a></li>
                             <li style={{ marginBottom: '0.8rem' }}><a href="#features" style={{ color: 'inherit', textDecoration: 'none' }}>Recursos</a></li>
-                            <li style={{ marginBottom: '0.8rem' }}><Link to="/register" style={{ color: 'inherit', textDecoration: 'none' }}>Criar Conta</Link></li>
-                            <li style={{ marginBottom: '0.8rem' }}><Link to="/login" style={{ color: 'inherit', textDecoration: 'none' }}>Entrar</Link></li>
+                            <li style={{ marginBottom: '0.8rem' }}><Link to="/login?mode=register" style={{ color: 'inherit', textDecoration: 'none' }}>Criar Conta</Link></li>
+                            <li style={{ marginBottom: '0.8rem' }}><Link to="/login?mode=login" style={{ color: 'inherit', textDecoration: 'none' }}>Entrar</Link></li>
                         </ul>
                     </div>
 

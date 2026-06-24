@@ -37,7 +37,7 @@ const ForgotPassword = () => {
         <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-4">
             <div className="max-w-md w-full bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8 border border-slate-200 dark:border-slate-700">
                 <div className="absolute top-4 left-4">
-                    <Link to="/login" className="text-slate-500 hover:text-[var(--primary)] text-sm font-bold flex items-center gap-2">
+                    <Link to="/login?mode=login" className="text-slate-500 hover:text-[var(--primary)] text-sm font-bold flex items-center gap-2">
                         <ArrowLeft size={16} /> Voltar para Login
                     </Link>
                 </div>

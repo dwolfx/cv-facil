@@ -85,7 +85,7 @@ const Terms = () => {
                     </div>
 
                     <div className="mt-8 pt-6 border-t border-slate-100 text-center">
-                        <Link to="/register" className="inline-block px-6 py-3 bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold rounded-lg hover:opacity-90 transition-opacity">
+                        <Link to="/login?mode=register" className="inline-block px-6 py-3 bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold rounded-lg hover:opacity-90 transition-opacity">
                             Voltar e Criar Conta
                         </Link>
                     </div>
