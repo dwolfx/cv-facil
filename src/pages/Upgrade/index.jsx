@@ -191,14 +191,13 @@ const Upgrade = () => {
                                     <p className="text-slate-500 dark:text-slate-400 text-xs leading-relaxed">Modelos exclusivos desenhados para destacar você.</p>
                                 </div>
 
-                                {/* Tradução (Em Breve) */}
-                                <div className="bg-white dark:bg-slate-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm opacity-75 hover:opacity-100 transition-opacity">
+                                {/* Tradução */}
+                                <div className="bg-white dark:bg-slate-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow">
                                     <div className="bg-blue-100 dark:bg-blue-900/30 w-10 h-10 rounded-lg flex items-center justify-center mb-3 text-blue-600 dark:text-blue-400">
                                         <Globe size={20} />
                                     </div>
                                     <div className="flex items-center gap-2 mb-1">
                                         <h4 className="font-bold text-base dark:text-white">Tradução</h4>
-                                        <span className="text-[9px] bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded text-slate-500 border border-slate-200 dark:border-slate-600 font-medium">Em Breve</span>
                                     </div>
                                     <p className="text-slate-500 dark:text-slate-400 text-xs leading-relaxed">Versões em Inglês e Espanhol com um clique.</p>
                                 </div>
@@ -245,6 +244,10 @@ const Upgrade = () => {
                                             <CheckCircle size={16} className="text-[var(--primary)] shrink-0 md:w-5 md:h-5" />
                                             <span>Exportação em PDF</span>
                                         </li>
+                                        <li className="flex items-center gap-2 md:gap-3 text-slate-600 dark:text-slate-300 text-xs md:text-base">
+                                            <CheckCircle size={16} className="text-[var(--primary)] shrink-0 md:w-5 md:h-5" />
+                                            <span>Sem Marca D'água</span>
+                                        </li>
                                     </ul>
 
                                     <button className="w-full py-2 md:py-3 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-400 font-bold cursor-not-allowed bg-slate-50 dark:bg-slate-800/50 mt-auto text-xs md:text-base">
@@ -288,9 +291,9 @@ const Upgrade = () => {
                                                 <CheckCircle size={20} className="text-white shrink-0" />
                                                 <span>Sem Marca D'água</span>
                                             </li>
-                                            <li className="flex items-center gap-3 text-orange-100 opacity-90">
-                                                <CheckCircle size={20} className="text-orange-200 shrink-0" />
-                                                <span>Tradução Automática (Em Breve)</span>
+                                            <li className="flex items-center gap-3 text-white">
+                                                <CheckCircle size={20} className="text-white shrink-0" />
+                                                <span>Tradução Automática</span>
                                             </li>
                                         </ul>
 

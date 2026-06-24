@@ -5,6 +5,7 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   server: {
+    port: 5180,
     proxy: {
       '/api-deepl': {
         target: 'https://api-free.deepl.com',

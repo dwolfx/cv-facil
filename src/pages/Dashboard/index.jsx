@@ -223,6 +223,22 @@ const Dashboard = () => {
         }
     }
 
+    const handleToggleShare = async (id, isShared) => {
+        try {
+            const { error } = await supabase
+                .from('resumes')
+                .update({ is_shared: isShared, updated_at: new Date() })
+                .eq('id', id)
+
+            if (error) throw error
+
+            setResumes(prev => prev.map(r => r.id === id ? { ...r, is_shared: isShared } : r))
+            toast.success(isShared ? 'Compartilhado com agências de recrutamento!' : 'Compartilhamento desativado.')
+        } catch (error) {
+            console.error(error)
+            toast.error('Erro ao atualizar compartilhamento.')
+        }
+    }
 
     useEffect(() => {
         if (user) {
@@ -394,6 +410,7 @@ const Dashboard = () => {
                                             onDownload={handleDownload}
                                             onTranslate={handleTranslate}
                                             onDelete={handleDelete}
+                                            onToggleShare={handleToggleShare}
                                         />
                                     )
                                 })}

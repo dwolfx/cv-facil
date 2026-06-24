@@ -58,3 +58,12 @@ proxy: {
 }
 ```
 Lembre-se que em produção (ex: Vercel, Netlify), a API deve ser repassada por serverless functions equivalentes, já que a configuração do Vite Proxy morre no `npm run build`.
+
+## 🌐 Porta do Servidor de Desenvolvimento
+Para evitar conflitos com outros projetos locais e colisões de cache ou service workers no navegador, o servidor de desenvolvimento está configurado para rodar fixo na porta **`5180`** no arquivo `vite.config.js`:
+```javascript
+server: {
+  port: 5180
+}
+```
+Ao executar `npm run dev`, o projeto sempre rodará em **`http://localhost:5180/`**.

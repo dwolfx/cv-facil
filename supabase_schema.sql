@@ -31,6 +31,7 @@ create table public.resumes (
   content jsonb default '{}'::jsonb,
   strength integer default 0,
   thumbnail text,
+  is_shared boolean default true not null,
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );

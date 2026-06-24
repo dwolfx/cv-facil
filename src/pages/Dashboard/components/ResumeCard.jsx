@@ -18,7 +18,8 @@ const ResumeCard = ({
   onDuplicate, 
   onDownload, 
   onTranslate, 
-  onDelete 
+  onDelete,
+  onToggleShare
 }) => {
   const navigate = useNavigate();
 
@@ -142,6 +143,19 @@ const ResumeCard = ({
               <div className="cv-strength-bar-fill" style={{ width: `${resume.strength || 0}%` }}></div>
             </div>
             <span className="cv-strength-value">{resume.strength || 0}%</span>
+          </div>
+
+          <div className="cv-share-container" onClick={(e) => e.stopPropagation()}>
+            <label className="cv-share-label">
+              <input
+                type="checkbox"
+                checked={resume.is_shared !== false}
+                onChange={(e) => onToggleShare(resume.id, e.target.checked)}
+                className="cv-share-checkbox"
+                disabled={isLocked}
+              />
+              <span className="cv-share-text">Compartilhar com agências</span>
+            </label>
           </div>
         </div>
 

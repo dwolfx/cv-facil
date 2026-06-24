@@ -1,0 +1,2 @@
+-- EXECUTAR NO SQL EDITOR DO SUPABASE:
+ALTER TABLE public.resumes ADD COLUMN is_shared boolean DEFAULT true NOT NULL;

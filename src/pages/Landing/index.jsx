@@ -1,8 +1,9 @@
 
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { FileText, Globe, Download, Zap, Check, CheckCircle, Star } from 'lucide-react'
+import { FileText, Globe, Download, Zap, Check, CheckCircle, Star, Shield, Briefcase, ShieldCheck, Mail, MessageCircle } from 'lucide-react'
 import './Landing.css'
+import { toast } from 'sonner'
 
 const Landing = () => {
     const [billingCycle, setBillingCycle] = React.useState('monthly')
@@ -105,34 +106,110 @@ const Landing = () => {
                             icon={<Zap size={24} />}
                             title="Editor Intuitivo"
                             description="Interface limpa e fácil de usar. Foque no conteúdo do seu currículo sem complicações."
-                        />
-                        <FeatureCard
-                            icon={<FileText size={24} />}
-                            title="Modelos Profissionais"
-                            description="Templates testados e aprovados por recrutadores para diferentes momentos de carreira."
+                            styleClass="style-1"
                         />
                         <FeatureCard
                             icon={<Download size={24} />}
                             title="PDF Otimizado"
                             description="Exportação perfeita para passar nos filtros de robôs (ATS) e garantir sua leitura."
+                            styleClass="style-1"
                         />
                         <FeatureCard
                             icon={<Globe size={24} />}
                             title="Tradução Automática"
                             description="Crie versões em Inglês ou Espanhol do seu currículo com apenas um clique."
+                            styleClass="style-1"
+                        />
+                        <FeatureCard
+                            icon={<Shield size={24} />}
+                            title="Visibilidade Profissional"
+                            description="Seu currículo pode ser encontrado por recrutadores parceiros* para acelerar sua contratação."
+                            disclaimer="Você escolhe se quer compartilhar."
+                            styleClass="style-1"
+                        />
+                        <FeatureCard
+                            icon={<FileText size={24} />}
+                            title="Modelos Profissionais"
+                            description="Templates recomendados e aprovados por recrutadores."
                             badge="Em Breve"
+                            styleClass="style-1"
                         />
                         <FeatureCard
                             icon={<Star size={24} />}
                             title="Ajuste com IA"
                             description="Nossa inteligência artificial analisa e sugere melhorias no seus textos."
                             badge="Em Breve"
+                            styleClass="style-1"
                         />
-                        <FeatureCard
-                            icon={<Check size={24} />}
-                            title="Privacidade Total"
-                            description="Seus dados são seus. Não compartilhamos suas informações com terceiros."
-                        />
+                    </div>
+                </section>
+
+                {/* Talent Pool / Visibility Section */}
+                <section className="visibility-section" id="visibility" style={{ borderTop: '1px solid #f1f5f9', borderBottom: '1px solid #f1f5f9', background: '#fafafb' }}>
+                    <div className="container visibility-grid">
+                        <div className="visibility-content">
+                            <h2>Seu Currículo em Destaque no Mercado</h2>
+                            <p className="intro">
+                                Uma grande parte das vagas nem chega a ser aberta ao público, pois muitos recrutadores encontram candidatos em bancos de currículos.<br />
+                                Ao criar seu currículo no CV Fácil, você poderá ser visto por recrutadores e ser encontrado pelo seu próximo emprego de forma simples e passiva.
+                            </p>
+                            
+                            <div className="visibility-features">
+                                <div className="visibility-feature-item">
+                                    <div className="visibility-feature-icon">
+                                        <Briefcase size={20} />
+                                    </div>
+                                    <div className="visibility-feature-text">
+                                        <h4>Conexão Direta com Empresas</h4>
+                                        <p>Seu currículo fica visível para headhunters e gestores de tecnologia de vários segmentos que buscam perfis qualificados.</p>
+                                    </div>
+                                </div>
+
+                                <div className="visibility-feature-item">
+                                    <div className="visibility-feature-icon">
+                                        <Mail size={20} />
+                                    </div>
+                                    <div className="visibility-feature-text">
+                                        <h4>Propostas no seu E-mail ou WhatsApp</h4>
+                                        <p>Sem processos seletivos burocráticos. As empresas entram em contato direto com você para agendar entrevistas de forma simplificada.</p>
+                                    </div>
+                                </div>
+
+                                <div className="visibility-feature-item">
+                                    <div className="visibility-feature-icon">
+                                        <ShieldCheck size={20} />
+                                    </div>
+                                    <div className="visibility-feature-text">
+                                        <h4>Privacidade e Controle Sob sua Escolha</h4>
+                                        <p>Essa opção vem ativada por padrão para acelerar suas contratações, mas você decide. A qualquer momento, desative ou ative o compartilhamento de qualquer currículo no seu painel com um único clique.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="recruiter-mockup-wrapper">
+                            <div className="recruiter-mockup">
+                                <div className="recruiter-mockup-header">
+                                    <div className="recruiter-avatar" style={{ background: '#22c55e' }}>JM</div>
+                                    <div className="recruiter-info">
+                                        <h5>Juliana Martins</h5>
+                                        <span>Tech Recruiter na InovaTech</span>
+                                    </div>
+                                    <div className="notification-badge" style={{ background: '#f0fdf4', color: '#16a34a' }}>
+                                        Via WhatsApp
+                                    </div>
+                                </div>
+                                <div className="recruiter-mockup-body">
+                                    <div className="mockup-message whatsapp">
+                                        "Olá! Vi seu currículo no CV Fácil e gostei muito do seu perfil para a nossa vaga. Você teria disponibilidade para bater um papo esta semana?"
+                                    </div>
+                                    <button className="mockup-action-btn whatsapp" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }} onClick={() => toast.success('Simulação: Abrindo conversa no WhatsApp com a recrutadora!')}>
+                                        <MessageCircle size={16} />
+                                        Responder Recrutador
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </section>
 
@@ -145,79 +222,84 @@ const Landing = () => {
                         </p>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 450px))', justifyContent: 'center', gap: '2rem' }}>
+                    <div className="pricing-grid">
 
                         {/* Free */}
-                        <div className="feature-card" style={{ display: 'flex', flexDirection: 'column', textAlign: 'left', border: '1px solid #e2e8f0', background: 'white' }}>
-                            <div style={{ marginBottom: '1rem' }}>
-                                <span style={{ background: '#eee', color: '#555', padding: '0.25rem 0.75rem', borderRadius: '1rem', fontSize: '0.8rem', fontWeight: 'bold', textTransform: 'uppercase' }}>Grátis</span>
+                        <div className="pricing-card free">
+                            <span className="pricing-badge free">Grátis</span>
+                            <div className="pricing-price-container">
+                                <span className="pricing-price" style={{ color: 'var(--text-main)' }}>R$ 0</span>
+                                <span className="pricing-period">/ sempre</span>
                             </div>
-                            <h3 style={{ fontSize: '3rem', marginBottom: '0.5rem', fontWeight: 800 }}>R$ 0</h3>
-                            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Você começa aqui.</p>
+                            <p className="pricing-desc">Você começa aqui.</p>
 
-                            <ul style={{ listStyle: 'none', padding: 0, margin: '2rem 0', flex: 1 }}>
-                                <li style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem', fontSize: '1rem' }}>
+                            <ul className="pricing-list">
+                                <li className="pricing-list-item">
                                     <Check size={20} color="var(--primary)" /> 2 Currículos
                                 </li>
-                                <li style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem', fontSize: '1rem' }}>
+                                <li className="pricing-list-item">
                                     <Check size={20} color="var(--primary)" /> Exportação em PDF
+                                </li>
+                                <li className="pricing-list-item">
+                                    <Check size={20} color="var(--primary)" /> Sem Marca D'água
                                 </li>
                             </ul>
 
-                            <Link to="/register" className="btn btn-secondary" style={{ width: '100%', justifyContent: 'center', marginTop: 'auto' }}>
+                            <Link to="/register" className="btn btn-secondary" style={{ width: '100%', justifyContent: 'center' }}>
                                 Começar Grátis
                             </Link>
                         </div>
 
                         {/* Pro (Orange Gradient) */}
-                        <div className="feature-card" style={{ display: 'flex', flexDirection: 'column', textAlign: 'left', background: 'linear-gradient(to bottom, var(--primary), #ea580c)', color: 'white', border: 'none', position: 'relative', transform: 'scale(1.02)', boxShadow: '0 20px 25px -5px rgba(249, 115, 22, 0.4)' }}>
-                            <div style={{ position: 'absolute', top: -12, right: 20, background: 'white', color: 'var(--primary)', fontSize: '0.75rem', fontWeight: 'bold', padding: '0.25rem 0.75rem', borderRadius: '1rem', textTransform: 'uppercase' }}>
+                        <div className="pricing-card pro">
+                            <div style={{ position: 'absolute', top: -12, right: 20, background: 'white', color: 'var(--primary)', fontSize: '0.75rem', fontWeight: 'bold', padding: '0.25rem 0.75rem', borderRadius: '1rem', textTransform: 'uppercase', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
                                 MAIS POPULAR
                             </div>
 
-                            <div style={{ marginBottom: '1rem' }}>
-                                <span style={{ background: 'rgba(255,255,255,0.2)', color: 'white', padding: '0.25rem 0.75rem', borderRadius: '1rem', fontSize: '0.8rem', fontWeight: 'bold', textTransform: 'uppercase', backdropFilter: 'blur(4px)' }}>PRO</span>
-                            </div>
+                            <span className="pricing-badge pro">PRO</span>
 
-                            <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                                <h3 style={{ fontSize: '3rem', fontWeight: 800, color: 'white' }}>R$ {priceInfo.value}</h3>
-                                <span style={{ fontSize: '1.1rem', color: '#ffedd5' }}>{priceInfo.label}</span>
+                            <div className="pricing-price-container">
+                                <span className="pricing-price" style={{ color: 'white' }}>R$ {priceInfo.value}</span>
+                                <span className="pricing-period" style={{ color: '#ffedd5' }}>{priceInfo.label}</span>
                             </div>
-                            <p style={{ color: '#fff7ed', fontWeight: 'bold', fontSize: '0.9rem' }}>{priceInfo.desc}</p>
+                            <p className="pricing-desc">{priceInfo.desc}</p>
 
-                            <ul style={{ listStyle: 'none', padding: 0, margin: '2rem 0', flex: 1 }}>
-                                <li style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem', fontSize: '1rem' }}>
+                            <ul className="pricing-list">
+                                <li className="pricing-list-item">
                                     <Check size={20} color="white" strokeWidth={3} /> <b>Currículos Ilimitados</b>
                                 </li>
-                                <li style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem', fontSize: '1rem' }}>
+                                <li className="pricing-list-item">
                                     <Check size={20} color="white" strokeWidth={3} /> Acesso a novos modelos
                                 </li>
-                                <li style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem', fontSize: '1rem' }}>
+                                <li className="pricing-list-item">
                                     <Check size={20} color="white" strokeWidth={3} /> Sem Marca D'água
                                 </li>
-                                <li style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem', fontSize: '1rem', opacity: 0.8 }}>
-                                    <Check size={20} color="#ffedd5" /> Tradução Automática (Em Breve)
+                                <li className="pricing-list-item">
+                                    <Check size={20} color="white" strokeWidth={3} /> Tradução Automática
                                 </li>
                             </ul>
 
                             {/* Internal Toggle */}
-                            <div style={{ display: 'flex', background: 'rgba(0,0,0,0.2)', padding: '4px', borderRadius: '8px', marginBottom: '1.5rem', backdropFilter: 'blur(4px)' }}>
+                            <div className="pricing-toggle-container">
                                 <button
                                     onClick={() => setBillingCycle('monthly')}
-                                    style={{ flex: 1, padding: '8px 4px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 'bold', border: 'none', cursor: 'pointer', background: billingCycle === 'monthly' ? 'white' : 'transparent', color: billingCycle === 'monthly' ? 'var(--primary)' : '#ffedd5', transition: 'all 0.2s' }}
+                                    className="pricing-toggle-btn"
+                                    style={{ background: billingCycle === 'monthly' ? 'white' : 'transparent', color: billingCycle === 'monthly' ? 'var(--primary)' : '#ffedd5' }}
                                 >
                                     Mensal
                                 </button>
                                 <button
                                     onClick={() => setBillingCycle('yearly')}
-                                    style={{ flex: 1, padding: '8px 4px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 'bold', border: 'none', cursor: 'pointer', background: billingCycle === 'yearly' ? 'white' : 'transparent', color: billingCycle === 'yearly' ? 'var(--primary)' : '#ffedd5', transition: 'all 0.2s', position: 'relative' }}
+                                    className="pricing-toggle-btn"
+                                    style={{ background: billingCycle === 'yearly' ? 'white' : 'transparent', color: billingCycle === 'yearly' ? 'var(--primary)' : '#ffedd5', position: 'relative' }}
                                 >
                                     Anual
                                     <span style={{ position: 'absolute', top: -10, right: -5, fontSize: '0.6rem', background: '#22c55e', color: 'white', padding: '1px 5px', borderRadius: '10px', fontWeight: 'bold' }}>-17%</span>
                                 </button>
                                 <button
                                     onClick={() => setBillingCycle('lifetime')}
-                                    style={{ flex: 1, padding: '8px 4px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 'bold', border: 'none', cursor: 'pointer', background: billingCycle === 'lifetime' ? 'white' : 'transparent', color: billingCycle === 'lifetime' ? '#7c3aed' : '#ffedd5', transition: 'all 0.2s' }}
+                                    className="pricing-toggle-btn"
+                                    style={{ background: billingCycle === 'lifetime' ? 'white' : 'transparent', color: billingCycle === 'lifetime' ? '#7c3aed' : '#ffedd5' }}
                                 >
                                     Vitalício
                                 </button>
@@ -336,13 +418,74 @@ const Landing = () => {
     )
 }
 
-const FeatureCard = ({ icon, title, description, badge }) => (
-    <div className="feature-card" style={{ position: 'relative' }}>
-        {badge && <div style={{ position: 'absolute', top: 15, right: 15, background: '#e2e8f0', color: '#64748b', padding: '2px 8px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 'bold', textTransform: 'uppercase' }}>{badge}</div>}
-        <div className="feature-icon">{icon}</div>
-        <h3>{title}</h3>
-        <p style={{ fontSize: '0.95rem', color: 'var(--text-muted)', marginBottom: 0 }}>{description}</p>
-    </div>
-)
+const FeatureCard = ({ icon, title, description, badge, styleClass, disclaimer }) => {
+    const isAvailable = badge === 'Disponível';
+    const badgeStyle = isAvailable
+        ? { background: '#ecfdf5', color: '#047857', border: '1px solid #a7f3d0' }
+        : { background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1' };
+
+    if (styleClass === 'style-3') {
+        return (
+            <div className="feature-card style-3" style={{ position: 'relative' }}>
+                {badge && (
+                    <div style={{
+                        position: 'absolute',
+                        top: 15,
+                        right: 15,
+                        padding: '2px 8px',
+                        borderRadius: '4px',
+                        fontSize: '0.65rem',
+                        fontWeight: 'bold',
+                        textTransform: 'uppercase',
+                        zIndex: 10,
+                        ...badgeStyle
+                    }}>
+                        {badge}
+                    </div>
+                )}
+                <div className="feature-card-style-3-header">
+                    <div className="feature-icon" style={{ marginBottom: 0, width: 40, height: 40 }}>{icon}</div>
+                    <h3 style={{ margin: 0 }}>{title}</h3>
+                </div>
+                <div className="feature-card-style-3-body">
+                    <p style={{ fontSize: '0.95rem', color: 'var(--text-muted)', marginBottom: 0 }}>{description}</p>
+                    {disclaimer && (
+                        <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', opacity: 0.7, marginTop: '0.5rem', borderTop: '1px solid #f1f5f9', paddingTop: '0.4rem', marginBottom: 0 }}>
+                            * {disclaimer}
+                        </p>
+                    )}
+                </div>
+            </div>
+        )
+    }
+
+    return (
+        <div className={`feature-card ${styleClass || ''}`} style={{ position: 'relative', overflow: 'hidden', paddingBottom: disclaimer ? '8px' : undefined }}>
+            {badge && (
+                <div style={{
+                    position: 'absolute',
+                    top: 15,
+                    right: 15,
+                    padding: '2px 8px',
+                    borderRadius: '4px',
+                    fontSize: '0.65rem',
+                    fontWeight: 'bold',
+                    textTransform: 'uppercase',
+                    ...badgeStyle
+                }}>
+                    {badge}
+                </div>
+            )}
+            <div className="feature-icon">{icon}</div>
+            <h3>{title}</h3>
+            <p style={{ fontSize: '0.95rem', color: 'var(--text-muted)', marginBottom: 0 }}>{description}</p>
+            {disclaimer && (
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', opacity: 0.7, marginTop: '0.5rem', borderTop: '1px solid #f1f5f9', paddingTop: '0.4rem', marginBottom: 0 }}>
+                    * {disclaimer}
+                </p>
+            )}
+        </div>
+    )
+}
 
 export default Landing
