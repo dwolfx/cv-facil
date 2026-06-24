@@ -2,8 +2,7 @@ import { createBrowserRouter, RouterProvider, Navigate, Outlet } from 'react-rou
 import { Toaster } from 'sonner'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import Landing from './pages/Landing'
-import Login from './pages/Auth/Login'
-import Register from './pages/Auth/Register'
+import Auth from './pages/Auth/Auth'
 import ForgotPassword from './pages/Auth/ForgotPassword'
 import ResetPassword from './pages/Auth/ResetPassword'
 import Editor from './pages/Editor'
@@ -67,8 +66,8 @@ const router = createBrowserRouter([
     element: <RootLayout />,
     children: [
       { path: '/', element: <PublicRoute><Landing /></PublicRoute> },
-      { path: '/login', element: <PublicRoute><Login /></PublicRoute> },
-      { path: '/register', element: <PublicRoute><Register /></PublicRoute> },
+      { path: '/login', element: <PublicRoute><Auth defaultMode="register" /></PublicRoute> },
+      { path: '/register', element: <PublicRoute><Auth defaultMode="register" /></PublicRoute> },
       { path: '/forgot-password', element: <PublicRoute><ForgotPassword /></PublicRoute> },
       { path: '/reset-password', element: <ResetPassword /> },
       { path: '/terms', element: <Terms /> },
