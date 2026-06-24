@@ -8,29 +8,42 @@ A estilização utiliza o **TailwindCSS (v3.4.17)** como motor principal, mas a 
 
 ### Variáveis e Mapeamento
 
-O arquivo `tailwind.config.js` mapeia as variáveis CSS nativas para classes de utilidade do Tailwind:
+O arquivo `tailwind.config.js` mapeia as variáveis CSS nativas (localizadas em `src/styles/variables.css`) para classes de utilidade do Tailwind:
 
 ```css
-/* Exemplo de Variáveis Core (src/index.css) */
+/* Variáveis Core (src/styles/variables.css) */
 :root {
-  --primary: #2563eb;       /* Tailwind 'blue-600' ish */
-  --primary-hover: #1d4ed8; 
-  --primary-light: #eff6ff;
-  --secondary: #64748b;     /* Tailwind 'slate-500' */
-  --bg-body: #f8f9fa;
+  --primary: #ff8000;         /* Laranja Principal CV Fácil */
+  --primary-hover: #cc6600;   /* Laranja Escuro para Hover */
+  --primary-light: #fff0e0;   /* Laranja Claro para fundos */
+  --secondary: #475569;       /* Slate Blue */
+  --bg-body: var(--slate-50);
   
+  /* Gradientes & Efeitos */
+  --gradient-main: linear-gradient(135deg, var(--primary) 0%, #ff5500 100%);
+  --shadow-glow: 0 0 20px rgba(255, 128, 0, 0.3);
+
   /* Raios de borda (Border Radius) */
+  --radius-sm: 0.125rem;
   --radius-md: 0.375rem;
   --radius-lg: 0.5rem;
   --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
 }
 ```
 
 No **Tailwind**, use-os através da chave estendida:
-- Text/Background: `text-primary`, `bg-primary`, `bg-primary-light`, `text-slate-blue`
-- Border Radius: `rounded`, `rounded-lg`, `rounded-xl` (estes já utilizam as variáveis `var(--radius-*)` estendidas no tailwind.config).
+- Text/Background: `text-primary`, `bg-primary`, `bg-primary-light`, `bg-gradient-main`, `shadow-glow`
+- Border Radius: `rounded`, `rounded-lg`, `rounded-xl`, `rounded-2xl`
 
-> **Aviso:** Evite criar cores com valores Hex fixos nos arquivos React (ex: `className="text-[#333]"`). Use a paleta estendida do Tailwind ou o slate padrão (`text-slate-800`).
+## ✍️ Escala de Tipografia Global
+A escala tipográfica foi ajustada para manter os textos compactos e equilibrados em telas de todos os tamanhos (definida em `src/styles/global.css`):
+* **Família Tipográfica:** `'Inter', system-ui, -apple-system, sans-serif`
+* **Heading 1 (h1):** `2.25rem` (~36px) — Usado em títulos principais e seções de destaque do Hero.
+* **Heading 2 (h2):** `1.75rem` (~28px) — Usado em títulos de seções principais da Landing Page e do Dashboard.
+* **Heading 3 (h3):** `1.35rem` (~21px) — Usado em títulos secundários, cabeçalhos de cards e blocos internos.
+
+> **Aviso:** Evite criar cores com valores Hex fixos nos arquivos React (ex: `className="text-[#ff8000]"`). Use a paleta estendida do Tailwind (`text-primary`) ou o slate padrão (`text-slate-800`).
 
 ## 🧱 Componentes de UI e Feedback
 
