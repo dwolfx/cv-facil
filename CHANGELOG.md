@@ -18,3 +18,20 @@ Embora estejamos num ciclo de SaaS ágil, o registro de grandes épicos estrutur
   - Gemini SDK (`@google/genai`) acoplado no `package.json`.
   - Função no Dashboard que chama a proxy `/api-deepl` (DeepL) ou serviço customizado (`translateResume`) para converter imediatamente o CV em Inglês ou Espanhol, lidando com todo o objeto JSON de uma vez.
 - **Feedback Visual**: Instalação e uso do pacote `sonner` para toasts/modais robustos em vez do padrão lento do navegador.
+
+## [1.1.0] - 2026-06-24
+### Added
+- **Compartilhamento de Currículos (Visibilidade de Recrutadores):**
+  - Implementado o controle de compartilhamento padrão com agências de recrutamento com opção de opt-out (checkbox "Compartilhar com agências" nos cards do painel).
+  - Atualizado o esquema do banco de dados local (`supabase_schema.sql`) e criado script delta de migração (`executar_no_supabase.sql`) contendo a query incremental para adicionar a coluna `is_shared`.
+- **Seção de Visibilidade & WhatsApp Mockup:**
+  - Criada uma nova seção interativa na Landing Page detalhando a exposição passiva do currículo a agências.
+  - Incluído um mockup dinâmico que simula uma mensagem de recrutador enviada diretamente ao WhatsApp do candidato, contendo a ação "Responder Recrutador".
+- **Autenticação Unificada:**
+  - Unificadas as telas de login e cadastro em um único componente moderno (`Auth.jsx`) e rota única `/login`.
+  - Adicionado suporte a parâmetros de consulta (`?mode=login` e `?mode=register`) com sincronização do histórico do navegador (`setSearchParams`) para persistir o estado do formulário na URL.
+- **Guias de Login Social & Gerador Apple:**
+  - Criados guias completos passo a passo para configuração de autenticação externa com Google, Apple, LinkedIn e Facebook em `docs/auth-guides/`.
+  - Criado o script utilitário `scripts/generate-apple-secret.js` com zero dependências externas para gerar o Client Secret JWT exigido pela integração da Apple.
+- **Bandeiras de Idioma nos Cards:**
+  - Substituída a antiga tag textual (`PT-BR`, `EN`, `ES`) por uma bandeira plana (SVG) correspondente ao idioma do currículo (Brasil, Inglaterra e Espanha) posicionada inline na linha de metadados antes do relógio.

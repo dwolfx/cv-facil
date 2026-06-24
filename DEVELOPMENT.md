@@ -29,7 +29,7 @@ O backend reside totalmente na Nuvem via Supabase. A estrutura relacional é reg
    - Campos Principais: `id` (uuid, FK), `full_name` (text), `plan_tier` (text)
    - `plan_tier` possíveis valores: `'free'`, `'premium'`, `'lifetime'`.
 3. **`public.resumes`**: O Core dos dados.
-   - Campos Principais: `id` (bigint), `user_id` (uuid, FK), `title` (text), `content` (jsonb), `strength` (int).
+   - Campos Principais: `id` (bigint), `user_id` (uuid, FK), `title` (text), `content` (jsonb), `strength` (int), `is_shared` (boolean, default true).
    - **`content` (JSONB):** A mágica mora aqui. Tudo do currículo (experiências, educação, dados pessoais, skills) não tem estrutura relacional. É um enorme objeto Javascript/JSON salvo nesta coluna. Isso garante enorme flexibilidade ao Editor.
 
 ## 🔌 Lógica de PDF (Exportação)
